@@ -37,7 +37,7 @@ module Datapath(
   
     initial begin
         base_addr <= 32'h00000004;
-        w_data    <= 32'h2010fcfb;
+        w_data    <= 32'h00002010;
         
         // test
         c <= 0;
@@ -54,8 +54,8 @@ module Datapath(
                
  //================================================================
  // Write memory Test
-  /*             
-     always @(negedge wr_en or posedge rst) begin
+               
+    always @(posedge wr_en or posedge rst) begin
         
         if (rst)begin
             w_data <= 32'h00000004;        
@@ -65,11 +65,10 @@ module Datapath(
         
         end
     end 
-    */
+    
     
  //================================================================
  // Read memory Test   
-  /*  
     always @(posedge clk or posedge rst) begin
         
         if (rst)begin
@@ -81,5 +80,5 @@ module Datapath(
         else begin
             c <= c+1;
         end
-    end*/
+    end
 endmodule

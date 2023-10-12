@@ -52,13 +52,10 @@ module Memory(
     end
     
     
-    // =====================================================================================
-    // Reads from the memory
-    
-    
+
     // =====================================================================================
     // Writes in the memory
-    always @(posedge clk or posedge rst) begin
+    always @(negedge clk or posedge rst) begin
         
         if (rst)begin
                 resetMem();

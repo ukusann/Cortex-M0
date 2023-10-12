@@ -58,7 +58,7 @@ module top();
 
 // ===================================================================
 // Write Test
-/*
+
     always @(posedge clk or posedge rst) begin
         
         if (rst)begin
@@ -76,7 +76,7 @@ module top();
                
         end
     end 
-*/
+
 
 
     // clock
