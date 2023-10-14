@@ -6,6 +6,10 @@
 `define MEM_SRAM_SIZE       32'h0000ffff
 `define MEM_PERIPHERAL_SIZE 32'h0000ffff
 
+`define ADDR_ROM        32'h00000000;
+`define ADDR_SRAM       32'h00020000;
+`define ADDR_PERIPHERAL 32'h00030000;
+
 `define MEM_SIZE `MEM_ROM_SIZE + `MEM_SRAM_SIZE + `MEM_PERIPHERAL_SIZE
 //`define MEM_SIZE 8'hff
 
@@ -66,8 +70,6 @@ module Memory(
             mem[base_addr +2] <= w_data[23:16];
             mem[base_addr +3] <= w_data[31:24];
             
-            
-        
         end
     end 
     
