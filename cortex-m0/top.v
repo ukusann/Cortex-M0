@@ -45,12 +45,31 @@ module top();
  // ----------------------------------------------------------
  /* <<<<<<<<<<<<<<<<<<<< CONTROL UNIT >>>>>>>>>>>>>>>>>>>>> */
     
-    ControlUnit cu(clk, rst);  
+    ControlUnit cu(
+            clk, rst,
+            ld_sp,
+            ld_lr,
+            ld_pc,
+            ld_rd,
+            ld_apsr,
+            ld_ipsr,
+            ild_primask
+            );  
  // ----------------------------------------------------------
  // ----------------------------------------------------------
  /* <<<<<<<<<<<<<<<<<<<<<< DATAPATH >>>>>>>>>>>>>>>>>>>>>>> */
     
-    Datapath dp(clk, rst, wr_en);
+    Datapath dp(
+            clk, rst, 
+            wr_en,
+            ld_sp,
+            ld_lr,
+            ld_pc,
+            ld_rd,
+            ld_apsr,
+            ld_ipsr,
+            ild_primask
+            );
     
  // ----------------------------------------------------------
  // ----------------------------------------------------------
@@ -58,7 +77,7 @@ module top();
 
 // ===================================================================
 // Write Test
-
+/*
     always @(posedge clk or posedge rst) begin
         
         if (rst)begin
@@ -76,7 +95,7 @@ module top();
                
         end
     end 
-
+*/
 
 
     // clock
