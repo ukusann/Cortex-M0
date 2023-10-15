@@ -67,6 +67,7 @@ module coreRegisters(
     input wire [ 3:0] addr_Rn,  // Rn address
     input wire [ 3:0] addr_Rm,  // Rm address
     input wire [ 3:0] addr_Rd,  // Rd address
+    input wire [ 3:0] addr_Rs,  // Rs address
     
     
     // Program Status Registers bits  
@@ -88,6 +89,7 @@ module coreRegisters(
     output wire [31:0] Rn,      // Read Rn
     output wire [31:0] Rm,      // Read Rm
     output wire [31:0] r_Rd,    // Read destanation Register
+    output wire [31:0] Rs,      // Read Shift Register
     
     
     // Program Status Registers bits
@@ -126,8 +128,10 @@ module coreRegisters(
             PRIMASK <= 32'h00000000;
             
             // Test
-            core_reg[0] <= 32'hfefefe00;
-            core_reg[1] <= 32'hfe001200;
+            core_reg[0] <= 32'h00000000;
+            core_reg[1] <= 32'h00000101;
+            core_reg[2] <= 32'h00000102;
+            core_reg[3] <= 32'h00000103;
             
       end
     endtask
@@ -152,6 +156,7 @@ module coreRegisters(
     assign Rn = core_reg[addr_Rn];
     assign Rm = core_reg[addr_Rm];
     assign r_Rd = core_reg[addr_Rd];
+    assign Rs = core_reg[addr_Rs];
     
     // APSR - Condition Flags
     assign r_APSR = { PSR[`N_I], PSR[`Z_I] , PSR[`C_I] , PSR[`V_I]  };
@@ -167,7 +172,7 @@ module coreRegisters(
 // =====================================================================================
 // Core Registers Write:
     
-    always @(posedge clk or posedge rst) begin
+    always @(negedge clk or posedge rst) begin
     
          if (rst)begin
                 resetCoreReg();
