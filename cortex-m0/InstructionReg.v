@@ -155,7 +155,6 @@ module InstructionReg(
     /* Data processing and Uncondition Instructions */
     wire [ 3:0] opcode;    // Opcode
 
-    wire operand_2_reg, operand_2_imm;
     initial begin
       
     end
@@ -191,18 +190,17 @@ module InstructionReg(
   
     
     // Operand 2:
-    assign operand_2_reg = (data_proc & !I) | (single_transf &  I);
-    assign operand_2_imm = (data_proc &  I) | (single_transf & !I);
+    assign IMM = (!I_s4 && opcode == `OP_MOV_LAS) | (data_proc &  I) | (single_transf & !I);
     
     // Operand 2 = Register:
     
     assign addr_Rs  = (I_s4 & data_proc) ? IR[11: 8] : 4'h0;
-    assign addr_Rm  = ( operand_2_reg || opcode == `OP_MOV_LAS ) ? IR[3:0] : 4'h0;
-    assign stype    = ( operand_2_reg  ) ? IR[ 6: 5] : `STYPE_RR;
+    assign addr_Rm  = ( !IMM || opcode == `OP_MOV_LAS ) ? IR[3:0] : 4'h0;
+    assign stype    = ( !IMM  ) ? IR[ 6: 5] : `STYPE_RR;
     
     // Operand 2 = Immediate:
-    assign imm12     = (operand_2_imm) ? IR[11:0] : 12'b000000000000;
-    assign imm5     = ( !I_s4 & data_proc  ) ? IR[11: 7] : 5'h00;
+    assign imm12     = (IMM) ? IR[11:0] : 12'b000000000000;
+    assign imm5      = (IMM) ? IR[11: 7] : 5'h00;
   
     // General Data and Flags Uncondition Instructions:
     assign imod     = (uncond) ? IR[19:18] : 8'h0;
@@ -222,7 +220,6 @@ module InstructionReg(
     assign singlet_flags = (single_transf) ? IR[24:20]: 5'b00000;
 
     
-    assign IMM = (!I_s4 && opcode == `OP_MOV_LAS) | operand_2_imm;
     // ==============================================================
     // ==============================================================
              /* ----- Definition of the Instruction -----*/
