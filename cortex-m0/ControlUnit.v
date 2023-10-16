@@ -6,6 +6,8 @@ module ControlUnit(
     input wire rst,
     
     // Control Signals
+    output wire cu_wr_mem,
+    output wire cu_decode,
     output wire ld_sp,
     output wire ld_lr,
     output wire ld_pc,
@@ -26,7 +28,7 @@ module ControlUnit(
     reg [8:0] count;
     
     initial begin
-        count <= 0;
+        count <= 4;
     end
    
    
@@ -38,20 +40,21 @@ module ControlUnit(
     assign ld_sp      = (count == 8'd1 ) & 1'b1;
     assign ld_lr      = (count == 8'd3 ) & 1'b1;
     assign ld_pc      = (count == 8'd5 ) & 1'b1;
-    assign ld_rd      = (count == 8'd7 ) & 1'b1;
-    assign ld_apsr    = (count == 8'd9 ) & 1'b1;
+    assign ld_rd      = (count == 8'd5 ) & 1'b0;
+    assign ld_apsr    = (count == 8'd10 ) & 1'b1;
     assign ld_ipsr    = (count == 8'd11 ) & 1'b1;
     assign ld_primask = (count == 8'd13 ) & 1'b1;
     
+    assign cu_decode = (count == 8'd8 );
     
     always @(posedge clk or posedge rst) begin
         
         if (rst)begin
             count <= 8'h00;        
         end 
-        else if(count < 8'd16) begin
+        else if(count < 8'd9) begin
             count <= count + 8'h01;
-        end
+        end 
         else begin
             $finish;
         end
