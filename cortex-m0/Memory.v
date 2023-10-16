@@ -1,18 +1,6 @@
 `timescale 1ns / 1ps
 
-`define MEM_ADDR_SIZE  8'h7
-
-`define MEM_ROM_SIZE        32'h0001ffff
-`define MEM_SRAM_SIZE       32'h0000ffff
-`define MEM_PERIPHERAL_SIZE 32'h0000ffff
-
-`define ADDR_ROM        32'h00000000
-`define ADDR_SRAM       32'h00020000
-`define ADDR_PERIPHERAL 32'h00030000
-
-`define MEM_SIZE `MEM_ROM_SIZE + `MEM_SRAM_SIZE + `MEM_PERIPHERAL_SIZE
-//`define MEM_SIZE 8'hff
-
+`include "Defines.v"
 
 module Memory(
     input wire clk,

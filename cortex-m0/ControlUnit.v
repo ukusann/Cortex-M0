@@ -40,10 +40,11 @@ module ControlUnit(
     assign ld_sp      = (count == 8'd1 ) & 1'b1;
     assign ld_lr      = (count == 8'd3 ) & 1'b1;
     assign ld_pc      = (count == 8'd5 ) & 1'b1;
-    assign ld_rd      = (count == 8'd5 ) & 1'b0;
+    assign ld_rd      = (count == 8'd5 ) & 1'b1 || (count == 8'd8 ) & 1'b1;
     assign ld_apsr    = (count == 8'd10 ) & 1'b1;
     assign ld_ipsr    = (count == 8'd11 ) & 1'b1;
     assign ld_primask = (count == 8'd13 ) & 1'b1;
+
     
     assign cu_decode = (count == 8'd8 );
     
@@ -52,7 +53,7 @@ module ControlUnit(
         if (rst)begin
             count <= 8'h00;        
         end 
-        else if(count < 8'd9) begin
+        else if(count < 8'd15) begin
             count <= count + 8'h01;
         end 
         else begin

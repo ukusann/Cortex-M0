@@ -1,24 +1,6 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/07/2023 04:10:04 PM
-// Design Name: 
-// Module Name: Datapath
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
+`include "Defines.v"
 
 module Datapath(
     input wire clk,
@@ -72,7 +54,7 @@ module Datapath(
     wire [31:0] SP;       // Stack Pointer 
     wire [31:0] LR;       // Link Register 
     wire [31:0] PC;       // Program Counter 
-    wire [31:0] IR;       // Instrution Register
+    wire [31:0] IR;       // Instruction Register
     
     wire [31:0] Rn;       // Rn
     wire [31:0] Rm;       // Rm
@@ -95,7 +77,8 @@ module Datapath(
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
     
     Memory mem(
-            clk,rst, 
+            clk,
+            rst, 
             wr_en,   
             PC,
             base_addr, 
@@ -174,7 +157,7 @@ module Datapath(
 // ====================================================================================================
                                 /* Instruction Register*/
   
-    wire inst;         // Instruction to Execute
+    wire [4:0]inst;         // Instruction to Execute
     wire    I;         // Immediate Operand or Immediate Offset Enable     
     wire    S;         // Set condition codes
       
@@ -253,8 +236,43 @@ module Datapath(
     single_trans_f // Data Transfer flags ( P, U, B, W, L):
                   
     );
+// - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+// - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+      
+// ____________________________________________________________________________________________________
+// ====================================================================================================
+// ====================================================================================================
+// ====================================================================================================
+                                /*ALU*/
+  
+    wire [`ALU_OP_LEN:0] operation; // Operation to Execute
+
+    assign operation = (I & (inst == `MOV_LAS)) ? `ALU_OP_LSR_IMM : 
+                        (!I & (inst == `MOV_LAS)) ? `ALU_OP_LSR_REG : `ALU_OP_LEN'h0;
  
- 
+ ALU ALU (
+   // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
+                       /* ---- INPUTS ---- */
+   operation,
+   Rm,
+   Rs,
+   Rd,
+   imm_shift,
+   c,
+   z,
+   n,
+   v,
+   // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
+                       /* ---- OUTPUTS ---- */
+   Rm,
+   c,
+   z,
+   n,
+   v,
+   w_Rd    
+ );
+
+
  //================================================================
  // Fetch and Decode Test
  
