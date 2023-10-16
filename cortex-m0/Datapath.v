@@ -290,21 +290,8 @@ module Datapath(
             w_data <= w_data + 32'h00000005;
         
         end
-    end */
+    end 
+    */
     
-    
- //================================================================
- // Read memory Test   
-    /*always @(posedge clk or posedge rst) begin
-        
-        if (rst)begin
-            w_data <= 32'h00000004;        
-        end 
-        else if (c == 8'd5) begin
-            base_addr <= 32'd250;
-        end
-        else begin
-            c <= c+1;
-        end
-    end*/
+ 
 endmodule
