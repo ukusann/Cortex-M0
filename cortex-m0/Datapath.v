@@ -26,6 +26,7 @@ module Datapath(
     
     input wire wr_en,
     input wire cu_decode,
+    input wire cu_execute,
     
     // Control Signals
     input wire ld_sp,
@@ -77,7 +78,7 @@ module Datapath(
     wire [31:0] Rn;       // Rn
     wire [31:0] Rm;       // Rm
     wire [31:0] Rd;       // Destination Register
-    wire [31:0] Rs;       // Shift Register
+    wire [ 7:0] Rs;       // Shift Register
     
     wire n, z, c, v;      // Conditional Flags
     wire [ 5:0] IPSR;   // Exception Numbers
@@ -232,7 +233,7 @@ module Datapath(
     
     // Immediates:
     imm_shift, // Immediate offset Shift
-    imm_OP_2, // Operand 2 Immediate
+    imm_OP_2,  // Operand 2 Immediate
    
    
     //  Branch:
@@ -255,6 +256,40 @@ module Datapath(
     );
  
  
+ 
+  
+// ____________________________________________________________________________________________________
+// ====================================================================================================
+// ====================================================================================================
+// ====================================================================================================
+                                       /* ---- ALU ---- */
+  
+  ALU alu(
+    
+    clk,rst,
+    cu_execute,
+
+    instrution, // Defines the Instruction to execute
+
+    Rn, // Rn Register
+    Rm, // Rm Register
+    Rs, // Rs Shift Register
+
+    imm_shift, // Immediate offset Shift
+    imm_OP_2,  // Operand 2 Immediate
+
+    I, // Enable Immediate
+    S, // Set condition codes    
+    stype, // Shift Type
+    
+    n, z, c, v,
+    
+    // Outputs
+    w_n,w_z,w_c, w_v,
+    w_Rd
+
+    );
+  
  //================================================================
  // Fetch and Decode Test
  

@@ -89,7 +89,7 @@ module coreRegisters(
     output wire [31:0] Rn,      // Read Rn
     output wire [31:0] Rm,      // Read Rm
     output wire [31:0] r_Rd,    // Read destanation Register
-    output wire [31:0] Rs,      // Read Shift Register
+    output wire [ 7:0] Rs,      // Read Shift Register
     
     
     // Program Status Registers bits
@@ -156,7 +156,7 @@ module coreRegisters(
     assign Rn = core_reg[addr_Rn];
     assign Rm = core_reg[addr_Rm];
     assign r_Rd = core_reg[addr_Rd];
-    assign Rs = core_reg[addr_Rs];
+    assign Rs = core_reg[addr_Rs][7:0];
     
     // APSR - Condition Flags
     assign r_APSR = { PSR[`N_I], PSR[`Z_I] , PSR[`C_I] , PSR[`V_I]  };

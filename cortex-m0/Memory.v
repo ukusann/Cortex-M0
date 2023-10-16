@@ -51,19 +51,19 @@ module Memory(
         resetMem();
         read_data <= 31'd0;
         
-        /* // reg 
+         // reg 
         mem[4] <= 8'h32;
         mem[5] <= 8'h13;
         mem[6] <= 8'ha0;
         mem[7] <= 8'he1;
-        */
         
-         // imm
+        
+         /* // imm
         mem[4] <= 8'ha2;
         mem[5] <= 8'h11;
         mem[6] <= 8'ha0;
         mem[7] <= 8'he1;
-        
+        */
         
     end
     // Reg :1110 0001   1010 0000    Rd=xxxx Rs=xxxx     001'I=1 Rm=xxxx	

@@ -8,6 +8,8 @@ module ControlUnit(
     // Control Signals
     output wire cu_wr_mem,
     output wire cu_decode,
+    
+    output wire cu_execute,
     output wire ld_sp,
     output wire ld_lr,
     output wire ld_pc,
@@ -45,7 +47,9 @@ module ControlUnit(
     assign ld_ipsr    = (count == 8'd11 ) & 1'b1;
     assign ld_primask = (count == 8'd13 ) & 1'b1;
     
-    assign cu_decode = (count == 8'd8 );
+    
+    assign cu_decode  = (count == 8'd8 );
+    assign cu_execute = (count == 8'd8 );
     
     always @(posedge clk or posedge rst) begin
         
