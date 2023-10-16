@@ -70,10 +70,13 @@ module Memory(
     
     // Imm :1110 0001   1011 0000    Rn=xxxx [imm4!=0 : imm5 01'I = 0 : Rm = xxxx]
     
-
+    // =====================================================================================
+    // Reads from the memory
+    
+    
     // =====================================================================================
     // Writes in the memory
-    always @(negedge clk or posedge rst) begin
+    always @(posedge clk or posedge rst) begin
         
         if (rst)begin
                 resetMem();
