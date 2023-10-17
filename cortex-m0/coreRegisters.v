@@ -1,38 +1,6 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/11/2023 02:10:57 PM
-// Design Name: 
-// Module Name: coreRegisters
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
-
-`define SP_I 4'hd   // Stack Pointer
-`define LR_I 4'he   // Link Register
-`define PC_I 4'hf   // Program Counter
-`define SIZE_CREG_I 5'd16 // Size of the 
-
-`define N_I 5'd31   // Negative
-`define Z_I 5'd30   // Zero
-`define C_I 5'd29   // Carry
-`define V_I 5'd28   // Overflow
- 
-`define EXCEP_NUM  3'd5 
-
-
+`include "Defines.v"
 
 module coreRegisters(
 
@@ -67,6 +35,7 @@ module coreRegisters(
     input wire [ 3:0] addr_Rn,  // Rn address
     input wire [ 3:0] addr_Rm,  // Rm address
     input wire [ 3:0] addr_Rd,  // Rd address
+    input wire [ 3:0] addr_Rs,  // Rs address
     
     
     // Program Status Registers bits  
@@ -88,6 +57,7 @@ module coreRegisters(
     output wire [31:0] Rn,      // Read Rn
     output wire [31:0] Rm,      // Read Rm
     output wire [31:0] r_Rd,    // Read destanation Register
+    output wire [31:0] Rs,      // Read Shift Register
     
     
     // Program Status Registers bits
@@ -126,8 +96,10 @@ module coreRegisters(
             PRIMASK <= 32'h00000000;
             
             // Test
-            core_reg[0] <= 32'hfefefe00;
-            core_reg[1] <= 32'hfe001200;
+            core_reg[0] <= 32'h00000000;
+            core_reg[1] <= 32'h00000101;
+            core_reg[2] <= 32'h00000102;
+            core_reg[3] <= 32'h00000103;
             
       end
     endtask
@@ -152,6 +124,7 @@ module coreRegisters(
     assign Rn = core_reg[addr_Rn];
     assign Rm = core_reg[addr_Rm];
     assign r_Rd = core_reg[addr_Rd];
+    assign Rs = core_reg[addr_Rs];
     
     // APSR - Condition Flags
     assign r_APSR = { PSR[`N_I], PSR[`Z_I] , PSR[`C_I] , PSR[`V_I]  };

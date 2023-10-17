@@ -20,24 +20,17 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module top();
+module cortex_m0(
+    input wire clk,
+    input wire rst
+    );
 
-    reg   clk, rst;
-    reg  wr_en;
-    
-    // test
-    reg [7:0]count;
-        
+       
 // ----------------------------------------------------------
  /* <<<<<<<<<<<<<<<<< Initializations >>>>>>>>>>>>>>>>>> */
  
     initial begin
-        clk <= 1'b0;
-        rst <= 1'b0;
-        wr_en <= 1'b0;
-        
-        // test
-        count <= 8'd0;
+    
     end
   
   
@@ -47,6 +40,8 @@ module top();
     
     ControlUnit cu(
             clk, rst,
+            cu_wr_mem,
+            cu_decode,
             ld_sp,
             ld_lr,
             ld_pc,
@@ -61,7 +56,8 @@ module top();
     
     Datapath dp(
             clk, rst, 
-            wr_en,
+            cu_wr_mem,
+            cu_decode,
             ld_sp,
             ld_lr,
             ld_pc,
@@ -97,8 +93,5 @@ module top();
     end 
 */
 
-
-    // clock
-    always #5 clk = ~clk;
 
 endmodule
