@@ -19,7 +19,6 @@ module ControlUnit(
     output wire cu_wr_mem,
     output wire cu_branch,
     
-    output wire new_pc_en,
     output wire cu_decode,
     output wire cu_execute,
     output wire ld_sp,
@@ -56,9 +55,7 @@ module ControlUnit(
    
     assign ld_sp      =  1'b0;
     assign ld_lr      =  1'b0;
-    
-    assign new_pc_en  =  !st[1] & !st[0] & 1'b1;
-    assign ld_pc      =  new_pc_en & 1'b1;
+    assign ld_pc      =  !st[1] & !st[0] & 1'b1;
     
     assign ld_rd      =  !st[1] & !st[0] & write_rd     & 1'b1;
     assign cu_branch  =  !st[1] & !st[0] & br_en     & 1'b1;

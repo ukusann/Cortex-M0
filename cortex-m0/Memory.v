@@ -50,6 +50,29 @@ module Memory(
     initial begin
         resetMem();
         read_data <= 31'd0;
+        /*
+        mem[4] <= 8'h04;
+        mem[5] <= 8'h00;
+        mem[6] <= 8'h00;
+        mem[7] <= 8'h0a;
+        
+        mem[12] <= 8'h04;
+        mem[13] <= 8'h00;
+        mem[14] <= 8'h00;
+        mem[15] <= 8'h2a;
+        
+        mem[20] <= 8'h04;
+        mem[21] <= 8'h00;
+        mem[22] <= 8'h00;
+        mem[23] <= 8'h4a;
+        
+        mem[28] <= 8'h04;
+        mem[29] <= 8'h00;
+        mem[30] <= 8'h00;
+        mem[31] <= 8'h6a;
+        */
+        
+        // LS AS and MOV test
         
          // reg 
         mem[4] <= 8'h32;

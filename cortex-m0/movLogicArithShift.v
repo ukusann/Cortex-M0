@@ -54,6 +54,13 @@ module movLogicArithShift(
     reg [7:0] count;
     reg c;   
     
+    
+    initial begin
+        res = 34'd0;
+        count = 8'd0;
+        c = 0;   
+    end
+    
     // ====================================================================
     // ====================================================================
                   /* ---- Define the Operation ---- */
@@ -110,7 +117,7 @@ module movLogicArithShift(
     // ====================================================================
                     /* ---- OUTPUT ---- */
     
-    assign Rd  = (w_rd)? res[32:1]:32'h0000;
+    assign Rd  = res[32:1];
     
                    /* ---- Update flags if S == 1 ---- */
     assign carry_out  = (w_rd & S)?           c             : carry_in;

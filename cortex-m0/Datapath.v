@@ -29,7 +29,6 @@ module Datapath(
     
     input wire wr_en,
     input wire branch,
-    input wire new_pc_en,
     input wire cu_decode,
     input wire cu_execute,
     
@@ -271,6 +270,10 @@ module Datapath(
      
     // Single Data Transfer Flags:
     single_trans_f, // Data Transfer flags ( P, U, B, W, L):
+    
+    write_rd,
+    br_en,
+    
     ig_ex
     );
  
@@ -284,8 +287,6 @@ module Datapath(
                                        /* ---- ALU ---- */
     
     // Permition to write:
-    assign write_rd = (inst != `NO_INST);
-    assign br_en = !ig_ex & (inst == `B || inst == `BX || inst == `ERET );
     
   ALU alu(
     

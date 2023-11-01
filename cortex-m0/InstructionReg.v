@@ -136,8 +136,11 @@ module InstructionReg(
                             //      B: Byte/Word bit
                             //      W: Write-back bit
                             //      L: Load/Store bit
-                        
-   output  wire ig_ex
+   
+   output wire write_rd,    // write Result Register
+   output wire br_en,       // Branch Instruction
+                       
+   output wire ig_ex        // Ignore Instruction
     );
 
     
@@ -201,7 +204,7 @@ module InstructionReg(
     // Operand 2 = Register:
     
     assign addr_Rs  = (I_s4 & data_proc) ? IR[11: 8] : 4'h0;
-    assign addr_Rm  = ( !IMM && !uncond ) ? IR[3:0] : 4'h0;
+    assign addr_Rm  = ( (!IMM || opcode == `OP_MOV_LAS) && (single_transf | data_proc) ) ? IR[3:0] : 4'h0;
     assign stype    = IR[ 6: 5];
     
     // Operand 2 = Immediate:
@@ -256,7 +259,9 @@ module InstructionReg(
                    ( cond == `COND_VC && !v ) ? 1'b0 : // OVERFLOW has not occurred
                    1'b1; // Skip the execution State
                         
-    
+
+    assign write_rd = !ig_ex & instrution != `ERET & instrution != `WFI & (single_transf | data_proc);
+    assign br_en    = !ig_ex & (instrution == `B || instrution == `BX || instrution == `ERET );    
 endmodule
 
 
