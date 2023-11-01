@@ -298,6 +298,7 @@ module Datapath(
     Rn, // Rn Register
     Rm, // Rm Register
     Rs, // Rs Shift Register
+    Rd, // Rd Register
 
     imm_shift, // Immediate offset Shift
     imm_OP_2,  // Operand 2 Immediate

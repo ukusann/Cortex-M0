@@ -19,23 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define ADD       5'h00
-`define ADC       5'h01
-`define SUB       5'h02
-`define SBC       5'h03
-`define AND       5'h04
-`define ORR       5'h05
-`define EOR       5'h06
-`define BIC       5'h07
-`define MOV_LAS   5'h08
-`define CPSI      5'h09
-`define WFI       5'h0a
-`define ERET      5'h0b
-`define BX        5'h0c
-`define B         5'h0d
-`define LD        5'h0e
-`define ST        5'h0f
-`define NO_INST   5'h1f
+`include "Defines.v"
 
 
 
@@ -49,6 +33,7 @@ module ALU(
     input wire [31:0] Rn, // Rn Register
     input wire [31:0] Rm, // Rm Register
     input wire [ 7:0] Rs, // Rs Shift Register
+    input wire [ 7:0] Rd, // Rd Register
     
     input wire [ 4:0]   imm_shift, // Immediate offset Shift
     input wire [11:0] imm_operand, // Operand 2 Immediate
@@ -77,12 +62,13 @@ module ALU(
     output wire [31:0] w_LR,     // Write Link Register 
     output wire [31:0] w_PC,     // Write Program Counter 
      
-    output wire [31:0] Rd
+    output wire [31:0] new_Rd
     
     );
     
     wire inst_mov_las_en;
-    
+    wire inst_add_en;
+
     // Branch Operation Enable
     wire inst_brach, inst_brach_x, inst_eret;
    
@@ -106,10 +92,31 @@ module ALU(
             in_c, in_z ,in_n,    // Flags
     
         // Output
-            Rd,          // Destination Reg
+            Rd_mov_lad,          // Destination Reg
             out_c, out_z, out_n  // Flags
     );
     
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                    /* ---- ADCS and ADDS ---- */
+    wire [31:0] Rd_add;
+    op_add ADD(
+        
+        // Inputs:
+            clk,rst,             // System Signals
+            inst_add_en,         // Condition to Execute Operation
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_add,          // Destination Reg
+            out_c, out_z, out_n  // Flags
+    );
     
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
@@ -136,7 +143,7 @@ module ALU(
             Rm,         // Offset
             PC,         // Current Program Couter
         // Outputs   
-            Rd,        // New Program Counter
+            new_Rd,        // New Program Counter
             w_LR      // New Link Register
     );
      */ 
@@ -150,13 +157,15 @@ module ALU(
                         /* --- Instrution's Operation Enable --- */
                         
     assign inst_mov_las_en = cu_execute && (instrution == `MOV_LAS);
-    
+    assign inst_add_en = cu_execute && (instrution == `ADD || instrution == `ADC);
+
     // Branch
     assign inst_brach   = cu_execute && (instrution == `B);
     assign inst_brach_x = cu_execute && (instrution == `BX);
     assign inst_eret    = cu_execute && (instrution == `ERET);
                            
-   
+   assign new_Rd = inst_mov_las_en ? Rd_mov_lad :
+                   inst_add_en     ? Rd_add : Rd;
     // ==================================================================================
     // ==================================================================================
                         /* --- Assigns Outputs --- */
