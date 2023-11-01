@@ -1,6 +1,18 @@
 `timescale 1ns / 1ps
 
-`include "Defines.v"
+`define MEM_ADDR_SIZE  8'h7
+
+`define MEM_ROM_SIZE        32'h0001ffff
+`define MEM_SRAM_SIZE       32'h0000ffff
+`define MEM_PERIPHERAL_SIZE 32'h0000ffff
+
+`define ADDR_ROM        32'h00000000
+`define ADDR_SRAM       32'h00020000
+`define ADDR_PERIPHERAL 32'h00030000
+
+`define MEM_SIZE `MEM_ROM_SIZE + `MEM_SRAM_SIZE + `MEM_PERIPHERAL_SIZE
+//`define MEM_SIZE 8'hff
+
 
 module Memory(
     input wire clk,
@@ -38,19 +50,42 @@ module Memory(
     initial begin
         resetMem();
         read_data <= 31'd0;
+        /*
+        mem[4] <= 8'h04;
+        mem[5] <= 8'h00;
+        mem[6] <= 8'h00;
+        mem[7] <= 8'h0a;
         
-        /* // reg 
+        mem[12] <= 8'h04;
+        mem[13] <= 8'h00;
+        mem[14] <= 8'h00;
+        mem[15] <= 8'h2a;
+        
+        mem[20] <= 8'h04;
+        mem[21] <= 8'h00;
+        mem[22] <= 8'h00;
+        mem[23] <= 8'h4a;
+        
+        mem[28] <= 8'h04;
+        mem[29] <= 8'h00;
+        mem[30] <= 8'h00;
+        mem[31] <= 8'h6a;
+        */
+        
+        // LS AS and MOV test
+        
+         // reg 
         mem[4] <= 8'h32;
         mem[5] <= 8'h13;
         mem[6] <= 8'ha0;
         mem[7] <= 8'he1;
-        */
         
-         // imm
-        mem[4] <= 8'ha2;
-        mem[5] <= 8'h11;
-        mem[6] <= 8'ha0;
-        mem[7] <= 8'he1;
+        
+        // imm
+        mem[8]  <= 8'ha2;
+        mem[9]  <= 8'h10;
+        mem[10] <= 8'ha0;
+        mem[11] <= 8'he1;
         
         
     end

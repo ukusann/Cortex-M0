@@ -1,6 +1,38 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 10/11/2023 02:10:57 PM
+// Design Name: 
+// Module Name: coreRegisters
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 
-`include "Defines.v"
+
+`define SP_I 4'hd   // Stack Pointer
+`define LR_I 4'he   // Link Register
+`define PC_I 4'hf   // Program Counter
+`define SIZE_CREG_I 5'd16 // Size of the 
+
+`define N_I 5'd31   // Negative
+`define Z_I 5'd30   // Zero
+`define C_I 5'd29   // Carry
+`define V_I 5'd28   // Overflow
+ 
+`define EXCEP_NUM  3'd5 
+
+
 
 module coreRegisters(
 
@@ -12,6 +44,8 @@ module coreRegisters(
     input wire ld_sp,
     input wire ld_lr,
     input wire ld_pc,
+    
+    input wire branch,
     
     // Register Signal
     input wire ld_rd,
@@ -57,7 +91,7 @@ module coreRegisters(
     output wire [31:0] Rn,      // Read Rn
     output wire [31:0] Rm,      // Read Rm
     output wire [31:0] r_Rd,    // Read destanation Register
-    output wire [31:0] Rs,      // Read Shift Register
+    output wire [ 7:0] Rs,      // Read Shift Register
     
     
     // Program Status Registers bits
@@ -88,18 +122,18 @@ module coreRegisters(
     reg [4:0] i;
     begin
             for ( i = 5'd0; i < `SIZE_CREG_I; i = i + 1) begin
-                    core_reg[i] <= 32'h00000000;
+                    core_reg[i] = 32'h00000000;
             end
             
-            core_reg[`LR_I] <= 32'hffffffff;
-            PSR <= 32'h0000003f;
-            PRIMASK <= 32'h00000000;
+            core_reg[`LR_I] = 32'hffffffff;
+            PSR = 32'h0000003f;
+            PRIMASK = 32'h00000000;
             
             // Test
-            core_reg[0] <= 32'h00000000;
-            core_reg[1] <= 32'h00000101;
-            core_reg[2] <= 32'h00000102;
-            core_reg[3] <= 32'h00000103;
+            core_reg[0] = 32'h00000000;
+            core_reg[1] = 32'h00000101;
+            core_reg[2] = 32'h00000102;
+            core_reg[3] = 32'h00000103;
             
       end
     endtask
@@ -124,7 +158,7 @@ module coreRegisters(
     assign Rn = core_reg[addr_Rn];
     assign Rm = core_reg[addr_Rm];
     assign r_Rd = core_reg[addr_Rd];
-    assign Rs = core_reg[addr_Rs];
+    assign Rs = core_reg[addr_Rs][7:0];
     
     // APSR - Condition Flags
     assign r_APSR = { PSR[`N_I], PSR[`Z_I] , PSR[`C_I] , PSR[`V_I]  };
@@ -140,6 +174,54 @@ module coreRegisters(
 // =====================================================================================
 // Core Registers Write:
     
+    
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // Program Counter:
+    always @( posedge ld_pc or posedge rst) begin
+        if (rst)begin
+            core_reg[`PC_I] <= 32'd0;
+        end 
+        else begin 
+            if (branch) begin
+                core_reg[`PC_I] = w_PC;
+            end
+            else begin
+                core_reg[`PC_I] = core_reg[`PC_I] + 32'd4;
+            end
+        end
+    end    
+    
+
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // Link Register:
+    always @( posedge ld_lr or posedge rst) begin
+        if (rst)begin
+            core_reg[`LR_I] <= 32'hffffffff;
+        end 
+        else begin 
+            if (branch) begin
+                core_reg[`LR_I] = w_LR;
+            end
+        end
+    end    
+    
+    
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // Stack Point Register:
+    always @( posedge ld_sp or posedge rst) begin
+        if (rst)begin
+            core_reg[`SP_I] <= 32'h0;
+        end 
+        else begin 
+            if (branch) begin
+                core_reg[`SP_I] <= w_SP;
+            end
+        end
+    end    
+        
+        
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // General Purpose Registers:
     always @(negedge clk or posedge rst) begin
     
          if (rst)begin
@@ -147,16 +229,6 @@ module coreRegisters(
         end 
     
         else begin 
-            if (ld_sp) begin
-              core_reg[`SP_I] <= w_SP;      // Writes in the Stack Pointer  
-            end
-            if (ld_lr) begin
-              core_reg[`LR_I] <= w_LR;      // Writes in the Link Register
-            end
-            if (ld_pc) begin
-              core_reg[`PC_I] <= w_PC;      // Writes in the Program Counter
-            end
-            
             if (ld_rd) begin
               core_reg[addr_Rd] <= w_Rd;    // Writes in the Destination Register
             end
