@@ -19,8 +19,6 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define OP_MOV_LAS   4'b1101 // Mov and Logical and Arithemetics Shifts
-
 module movLogicArithShift(
     
     input wire clk,

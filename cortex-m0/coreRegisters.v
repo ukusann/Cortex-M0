@@ -18,21 +18,7 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
-`define SP_I 4'hd   // Stack Pointer
-`define LR_I 4'he   // Link Register
-`define PC_I 4'hf   // Program Counter
-`define SIZE_CREG_I 5'd16 // Size of the 
-
-`define N_I 5'd31   // Negative
-`define Z_I 5'd30   // Zero
-`define C_I 5'd29   // Carry
-`define V_I 5'd28   // Overflow
- 
-`define EXCEP_NUM  3'd5 
-
-
+`include "Defines.v"
 
 module coreRegisters(
 

@@ -19,24 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define ADD       5'h00
-`define ADC       5'h01
-`define SUB       5'h02
-`define SBC       5'h03
-`define AND       5'h04
-`define ORR       5'h05
-`define EOR       5'h06
-`define BIC       5'h07
-`define MOV_LAS   5'h08
-`define CPSI      5'h09
-`define WFI       5'h0a
-`define ERET      5'h0b
-`define BX        5'h0c
-`define B         5'h0d
-`define LD        5'h0e
-`define ST        5'h0f
-`define NO_INST   5'h1f
 
+`include "Defines.v"
 
 
 module ALU(
@@ -81,10 +65,15 @@ module ALU(
     
     );
     
+    
+    wire [31:0] rd_mov_las;
+    wire [31:0] rd_bx;
+    
     wire inst_mov_las_en;
     
     // Branch Operation Enable
-    wire inst_brach, inst_brach_x, inst_eret;
+    wire inst_branch, inst_branch_x, inst_eret;
+
    
     // ==================================================================================
     // ==================================================================================
@@ -92,7 +81,6 @@ module ALU(
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                     /* ---- LSL(S),  LSR(S), ASR(S), MOV(S) ---- */
-    wire [31:0] Rd_mov_lad;
     movLogicArithShift MOV_LAS(
         
         // Inputs:
@@ -106,7 +94,7 @@ module ALU(
             in_c, in_z ,in_n,    // Flags
     
         // Output
-            Rd,          // Destination Reg
+            rd_mov_las,          // Destination Reg
             out_c, out_z, out_n  // Flags
     );
     
@@ -114,10 +102,10 @@ module ALU(
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                             /* ---- B(L)(X)(COND), ERET ---- */
-   /*  
+    
     op_branch BRANCH(
         // Inputs
-            inst_brach, // Condition to Execute Operation
+            inst_branch, // Condition to Execute Operation
             br_L,       // Link Condition
         
             {8'h00, br_offset_imm}, // Offset
@@ -130,16 +118,16 @@ module ALU(
     
     op_branch BRANCH_X(
         // Inputs
-            inst_brach_x, // Condition to Execute Operation
+            inst_branch_x, // Condition to Execute Operation
             br_L,       // Link Condition
         
             Rm,         // Offset
             PC,         // Current Program Couter
         // Outputs   
-            Rd,        // New Program Counter
+            rd_bx,        // New Program Counter
             w_LR      // New Link Register
     );
-     */ 
+      
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                                 
@@ -152,8 +140,8 @@ module ALU(
     assign inst_mov_las_en = cu_execute && (instrution == `MOV_LAS);
     
     // Branch
-    assign inst_brach   = cu_execute && (instrution == `B);
-    assign inst_brach_x = cu_execute && (instrution == `BX);
+    assign inst_branch   = cu_execute && (instrution == `B);
+    assign inst_branch_x = cu_execute && (instrution == `BX);
     assign inst_eret    = cu_execute && (instrution == `ERET);
                            
    
@@ -162,6 +150,8 @@ module ALU(
                         /* --- Assigns Outputs --- */
     
       
-   
+   assign Rd = (instrution == `BX)? rd_bx: 
+               (instrution == `MOV_LAS)? rd_mov_las :
+               32'b0;
 
 endmodule
