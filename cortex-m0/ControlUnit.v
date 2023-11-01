@@ -1,14 +1,23 @@
 `timescale 1ns / 1ps
 
+`define START   2'b00
+`define FETCH   2'b01
+`define DECODE  2'b10
+`define EXECUTE 2'b11
 
 module ControlUnit(
     input wire clk,
     input wire rst,
     
     // Control Signals
-    output wire cu_wr_mem,
-    output wire cu_decode,
     
+    input wire update_flags,
+    input wire  write_rd,
+    
+    output wire cu_wr_mem,
+    
+    output wire new_pc_en,
+    output wire cu_decode,
     output wire cu_execute,
     output wire ld_sp,
     output wire ld_lr,
@@ -27,43 +36,58 @@ module ControlUnit(
     );
     
    
-    reg [8:0] count;
+    wire [1:0] nx_st;
+    reg  [1:0] st;
+    
+    
     
     initial begin
-        count <= 4;
+        
+        st <= `START;
+        
     end
    
    
-   
-   
 //================================================================
-// Core Register Write Test
+// SIGNALS OUTPUT
    
-    assign ld_sp      = (count == 8'd1 ) & 1'b1;
-    assign ld_lr      = (count == 8'd3 ) & 1'b1;
-    assign ld_pc      = (count == 8'd5 ) & 1'b1;
-    assign ld_rd      = (count == 8'd5 ) & 1'b0;
-    assign ld_apsr    = (count == 8'd10 ) & 1'b1;
-    assign ld_ipsr    = (count == 8'd11 ) & 1'b1;
-    assign ld_primask = (count == 8'd13 ) & 1'b1;
+    assign ld_sp      =  1'b0;
+    assign ld_lr      =  1'b0;
+    
+    assign new_pc_en  =  !st[1] & !st[0] & 1'b1;
+    assign ld_pc      =  cu_fetch & 1'b1;
+    
+    assign ld_rd      =  !st[1] & !st[0] & write_rd     & 1'b1;
+    assign ld_apsr    =  !st[1] & !st[0] & update_flags & 1'b1;
+    assign ld_ipsr    =  !st[1] & !st[0] & 1'b0;
+    assign ld_primask =  1'b0;
     
     
-    assign cu_decode  = (count == 8'd8 );
-    assign cu_execute = (count == 8'd8 );
+    assign cu_fetch   = !st[1] &  st[0];
+    assign cu_decode  =  st[1] &  !st[0];
+    assign cu_execute =  st[1] &  st[0];
+    
+    
+    
+    
+//================================================================
+// STATE MACHINE
+    
+    
+    assign nx_st[1] = (!st[1] & st[0]) | (st[1] & !st[0]);
+    assign nx_st[0] = !st[0];
     
     always @(posedge clk or posedge rst) begin
         
         if (rst)begin
-            count <= 8'h00;        
-        end 
-        else if(count < 8'd9) begin
-            count <= count + 8'h01;
+            st <= `START;        
         end 
         else begin
-            $finish;
+            st <= nx_st;
         end
         
     end 
+    
 
 //================================================================
     

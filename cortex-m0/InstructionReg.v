@@ -196,7 +196,7 @@ module InstructionReg(
     
     assign addr_Rs  = (I_s4 & data_proc) ? IR[11: 8] : 4'h0;
     assign addr_Rm  = ( !IMM || opcode == `OP_MOV_LAS ) ? IR[3:0] : 4'h0;
-    assign stype    = ( !IMM  ) ? IR[ 6: 5] : `STYPE_RR;
+    assign stype    = IR[ 6: 5];
     
     // Operand 2 = Immediate:
     assign imm12     = (IMM) ? IR[11:0] : 12'b000000000000;

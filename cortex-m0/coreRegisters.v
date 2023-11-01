@@ -120,18 +120,18 @@ module coreRegisters(
     reg [4:0] i;
     begin
             for ( i = 5'd0; i < `SIZE_CREG_I; i = i + 1) begin
-                    core_reg[i] <= 32'h00000000;
+                    core_reg[i] = 32'h00000000;
             end
             
-            core_reg[`LR_I] <= 32'hffffffff;
-            PSR <= 32'h0000003f;
-            PRIMASK <= 32'h00000000;
+            core_reg[`LR_I] = 32'hffffffff;
+            PSR = 32'h0000003f;
+            PRIMASK = 32'h00000000;
             
             // Test
-            core_reg[0] <= 32'h00000000;
-            core_reg[1] <= 32'h00000101;
-            core_reg[2] <= 32'h00000102;
-            core_reg[3] <= 32'h00000103;
+            core_reg[0] = 32'h00000000;
+            core_reg[1] = 32'h00000101;
+            core_reg[2] = 32'h00000102;
+            core_reg[3] = 32'h00000103;
             
       end
     endtask

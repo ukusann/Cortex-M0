@@ -58,12 +58,12 @@ module Memory(
         mem[7] <= 8'he1;
         
         
-         /* // imm
-        mem[4] <= 8'ha2;
-        mem[5] <= 8'h11;
-        mem[6] <= 8'ha0;
-        mem[7] <= 8'he1;
-        */
+        // imm
+        mem[8]  <= 8'ha2;
+        mem[9]  <= 8'h10;
+        mem[10] <= 8'ha0;
+        mem[11] <= 8'he1;
+        
         
     end
     // Reg :1110 0001   1010 0000    Rd=xxxx Rs=xxxx     001'I=1 Rm=xxxx	

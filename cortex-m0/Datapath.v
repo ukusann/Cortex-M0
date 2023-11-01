@@ -20,11 +20,15 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+`define NO_INST   5'h1f
+
+
 module Datapath(
     input wire clk,
     input wire rst,
     
     input wire wr_en,
+    input wire new_pc_en,
     input wire cu_decode,
     input wire cu_execute,
     
@@ -41,7 +45,12 @@ module Datapath(
     input wire ld_ipsr,
     
     // Priority Mask Register Signal
-    input wire ld_primask
+    input wire ld_primask,
+    
+    // Control Signals
+    output wire update_flags, // S == 1
+    output wire write_rd      // needs to write in Rd
+    
     );
   
 // ____________________________________________________________________________________________________
@@ -173,9 +182,9 @@ module Datapath(
 // ====================================================================================================
 // ====================================================================================================
 // ====================================================================================================
-                                /* Instruction Register*/
+                          /* Instruction Register and Program Counter*/
   
-    wire inst;         // Instruction to Execute
+    wire [4:0] inst;         // Instruction to Execute
     wire    I;         // Immediate Operand or Immediate Offset Enable     
     wire    S;         // Set condition codes
       
@@ -203,7 +212,11 @@ module Datapath(
                             //      L: Load/Store bit
    
     
-    
+    // ________________________________________________________________________
+                    /* ---- Update Program Counter ---- */
+   assign w_PC = (new_pc_en)? PC + 4 : w_PC;
+    // ________________________________________________________________________
+                    /* ---- Instruction Register Decode ---- */
    
  
  InstructionReg ins_reg(
@@ -263,6 +276,9 @@ module Datapath(
 // ====================================================================================================
 // ====================================================================================================
                                        /* ---- ALU ---- */
+    
+    // Permition to write:
+    assign write_rd = (inst != `NO_INST);
   
   ALU alu(
     
@@ -287,14 +303,8 @@ module Datapath(
     // Outputs
     w_n,w_z,w_c, w_v,
     w_Rd
-
     );
-  
- //================================================================
- // Fetch and Decode Test
- 
- assign w_PC = 32'h00000004;
- 
+    
  
  //================================================================
  // Core Register Write Test

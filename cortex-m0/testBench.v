@@ -19,6 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+`define SIM_TIME 8'h0b
 
 module testBench();
     
@@ -28,8 +29,8 @@ module testBench();
  
  
      initial begin
-        clk <= 1'b0;
-        rst <= 1'b0;
+        clk = 1'b0;
+        rst = 1'b0;
         
         // test
         count <= 8'd0;
@@ -41,4 +42,26 @@ module testBench();
  
        // clock
     always #5 clk = ~clk;
+
+
+
+//================================================================
+// SIMULATION COUNTER
+    
+    always @(posedge clk or posedge rst) begin
+        
+        if (rst)begin
+            count <= 8'h00;        
+        end 
+        else if(count < `SIM_TIME) begin
+            count <= count + 8'h01;
+        end 
+        else begin
+            $finish;
+        end
+        
+    end 
+
+
+
 endmodule
