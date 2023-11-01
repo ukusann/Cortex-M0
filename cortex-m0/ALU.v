@@ -53,28 +53,44 @@ module ALU(
     input wire [ 4:0]   imm_shift, // Immediate offset Shift
     input wire [11:0] imm_operand, // Operand 2 Immediate
     
+    input wire        br_L,      // Link bit 
+    input wire [23:0] br_offset_imm, // Branch offset  
+    input wire [31:0] LR, // Link Register
+    input wire [31:0] PC, // Program Counter Register
+    
     input wire              IMM, // Enable Immediate
     input wire                S, // Set condition codes    
     input wire [ 1:0]     stype, // Shift Type
     
     
-    output wire in_n, 
-    output wire in_z, 
-    output wire in_c, 
-    output wire in_v,
-    
+    input wire in_n, 
+    input wire in_z, 
+    input wire in_c, 
+    input wire in_v,
+   
+   
     output wire out_n, 
     output wire out_z, 
     output wire out_c, 
     output wire out_v,
+   
+    output wire [31:0] w_LR,     // Write Link Register 
+    output wire [31:0] w_PC,     // Write Program Counter 
+     
     output wire [31:0] Rd
     
     );
     
     wire inst_mov_las_en;
+    
+    // Branch Operation Enable
+    wire inst_brach, inst_eret;
    
     // ==================================================================================
     // ==================================================================================
+    
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                     /* ---- LSL(S),  LSR(S), ASR(S), MOV(S) ---- */
     movLogicArithShift MOV_LAS(
         
@@ -84,7 +100,7 @@ module ALU(
             S,                   // Set flags
             Rm,                  // Register Rm
             
-            (IMM) ? {3'b000,imm_shift}: Rs, // Operand 2
+            (IMM) ? {3'b000, imm_shift}: Rs, // Operand 2
             stype,               // Shift Type 
             in_c, in_z ,in_n,    // Flags
     
@@ -94,6 +110,26 @@ module ALU(
     );
     
     
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                            /* ---- B(L)(X)(COND), ERET ---- */
+    
+    op_branch BRANCH(
+        // Inputs
+            inst_brach, // Condition to Execute Operation
+            br_L,       // Link Condition
+        
+            (IMM) ? {8'h00, br_offset_imm}: Rm, // Offset
+            PC,         // Current Program Couter
+        // Outputs   
+            w_PC,      // New Program Counter
+            w_LR       // New Link Register
+    
+    );
+    
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                                
     
     
     // ==================================================================================
@@ -102,6 +138,9 @@ module ALU(
                         
     assign inst_mov_las_en = cu_execute && (instrution == `MOV_LAS);
     
+    // Branch
+    assign inst_brach = cu_execute && (instrution == `B ||instrution == `BX);
+    assign inst_eret  = cu_execute && (instrution == `ERET);
                            
     
 endmodule

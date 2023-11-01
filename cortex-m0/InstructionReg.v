@@ -64,7 +64,6 @@
 `define COND_PL 4'h5 // Negative or Zero
 `define COND_VS 4'h6 // OVERFLOW has occurred
 `define COND_VC 4'h7 // OVERFLOW has not occurred
-`define COND_HI 4'h8 // Equal
 `define COND_AL 4'he // Always (ignor flags)
 `define COND_UN 4'hF // Unconditional Instruction
 
@@ -91,6 +90,12 @@ module InstructionReg(
     
     // Instruction Register:
     input wire [31:0] IR,
+    
+    input wire n, 
+    input wire z, 
+    input wire c, 
+    input wire v,
+    
     
     // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- OUTPUTS ---- */
@@ -125,13 +130,14 @@ module InstructionReg(
    
      
     // Single Data Transfer Flags:
-    output wire [4:0] singlet_flags // Data Transfer flags ( P, U, B, W, L):
+    output wire [4:0] singlet_flags, // Data Transfer flags ( P, U, B, W, L):
                             //      P: Pre/Post Indexing bit
                             //      U: Up/Down bit
                             //      B: Byte/Word bit
                             //      W: Write-back bit
                             //      L: Load/Store bit
-   
+                        
+   output  wire ig_ex
     );
 
     
@@ -225,9 +231,32 @@ module InstructionReg(
              /* ----- Definition of the Instruction -----*/
     
     
-    assign instrution = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS : `NO_INST;
+    assign instrution = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS :
+                        (               branch              ) ? `B :
+                        (   data_proc & (opcode == `OP_BX)  ) ? `BX :
+                        (  data_proc & (opcode == `OP_ERET) ) ? `OP_ERET :
+                        `NO_INST;
     
-
+    
+    // ==============================================================
+    // ==============================================================
+                    /* ---- Condition Compare ---- */
+    
+    
+    assign ig_ex = ( instrution == `NO_INST ) ? 1'b1 : // No Instruction Defined
+                   (    cond == `COND_UN    ) ? 1'b0 : // Unconditional Instruction
+                   (    cond == `COND_AL    ) ? 1'b0 : // Always (ignor flags)
+                   ( cond == `COND_EQ &&  z ) ? 1'b0 : // Equal
+                   ( cond == `COND_NE && !z ) ? 1'b0 : // NOT Equal
+                   ( cond == `COND_CS &&  c ) ? 1'b0 : // CARRY SET
+                   ( cond == `COND_CC && !c ) ? 1'b0 : // CARRY CLEAR
+                   ( cond == `COND_MI &&  n ) ? 1'b0 : // Negative
+                   ( cond == `COND_PL && !n ) ? 1'b0 : // Positive or Zero
+                   ( cond == `COND_VS &&  v ) ? 1'b0 : // OVERFLOW has occurred
+                   ( cond == `COND_VC && !v ) ? 1'b0 : // OVERFLOW has not occurred
+                   1'b1; // Skip the execution State
+                        
+    
 endmodule
 
 

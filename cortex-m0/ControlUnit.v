@@ -13,8 +13,11 @@ module ControlUnit(
     
     input wire update_flags,
     input wire  write_rd,
+    input wire  ig_ex,
+    input wire  br_en,
     
     output wire cu_wr_mem,
+    output wire cu_branch,
     
     output wire new_pc_en,
     output wire cu_decode,
@@ -55,9 +58,11 @@ module ControlUnit(
     assign ld_lr      =  1'b0;
     
     assign new_pc_en  =  !st[1] & !st[0] & 1'b1;
-    assign ld_pc      =  cu_fetch & 1'b1;
+    assign ld_pc      =  new_pc_en & 1'b1;
     
     assign ld_rd      =  !st[1] & !st[0] & write_rd     & 1'b1;
+    assign cu_branch  =  !st[1] & !st[0] & br_en     & 1'b1;
+    
     assign ld_apsr    =  !st[1] & !st[0] & update_flags & 1'b1;
     assign ld_ipsr    =  !st[1] & !st[0] & 1'b0;
     assign ld_primask =  1'b0;
@@ -74,8 +79,8 @@ module ControlUnit(
 // STATE MACHINE
     
     
-    assign nx_st[1] = (!st[1] & st[0]) | (st[1] & !st[0]);
-    assign nx_st[0] = !st[0];
+    assign nx_st[1] = (!st[1] &  st[0]) | (!ig_ex &  st[1] & !st[0]);
+    assign nx_st[0] = (!ig_ex & !st[0]) | (!st[1] & !st[0]);
     
     always @(posedge clk or posedge rst) begin
         

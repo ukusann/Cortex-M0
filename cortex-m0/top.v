@@ -42,7 +42,10 @@ module cortex_m0(
             clk, rst,
             update_flags,
             write_rd,
+            ig_ex,
+            br_en,
             cu_wr_mem,
+            branch,
             new_pc_en,
             cu_decode,
             cu_execute,
@@ -61,6 +64,7 @@ module cortex_m0(
     Datapath dp(
             clk, rst, 
             cu_wr_mem,
+            branch,
             new_pc_en,
             cu_decode,
             cu_execute,
@@ -72,7 +76,9 @@ module cortex_m0(
             ld_ipsr,
             ild_primask,
             update_flags,
-            write_rd
+            write_rd,
+            ig_ex,
+            br_en
             );
     
  // ----------------------------------------------------------

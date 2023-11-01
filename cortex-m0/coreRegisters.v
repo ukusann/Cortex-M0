@@ -45,6 +45,8 @@ module coreRegisters(
     input wire ld_lr,
     input wire ld_pc,
     
+    input wire branch,
+    
     // Register Signal
     input wire ld_rd,
     
@@ -172,6 +174,54 @@ module coreRegisters(
 // =====================================================================================
 // Core Registers Write:
     
+    
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // Program Counter:
+    always @( posedge ld_pc or posedge rst) begin
+        if (rst)begin
+            core_reg[`PC_I] <= 32'd0;
+        end 
+        else begin 
+            if (branch) begin
+                core_reg[`PC_I] = w_PC;
+            end
+            else begin
+                core_reg[`PC_I] = core_reg[`PC_I] + 32'd4;
+            end
+        end
+    end    
+    
+
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // Link Register:
+    always @( posedge ld_lr or posedge rst) begin
+        if (rst)begin
+            core_reg[`LR_I] <= 32'hffffffff;
+        end 
+        else begin 
+            if (branch) begin
+                core_reg[`LR_I] = w_LR;
+            end
+        end
+    end    
+    
+    
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // Stack Point Register:
+    always @( posedge ld_sp or posedge rst) begin
+        if (rst)begin
+            core_reg[`SP_I] <= 32'h0;
+        end 
+        else begin 
+            if (branch) begin
+                core_reg[`SP_I] <= w_SP;
+            end
+        end
+    end    
+        
+        
+    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+    // General Purpose Registers:
     always @(negedge clk or posedge rst) begin
     
          if (rst)begin
@@ -179,16 +229,6 @@ module coreRegisters(
         end 
     
         else begin 
-            if (ld_sp) begin
-              core_reg[`SP_I] <= w_SP;      // Writes in the Stack Pointer  
-            end
-            if (ld_lr) begin
-              core_reg[`LR_I] <= w_LR;      // Writes in the Link Register
-            end
-            if (ld_pc) begin
-              core_reg[`PC_I] <= w_PC;      // Writes in the Program Counter
-            end
-            
             if (ld_rd) begin
               core_reg[addr_Rd] <= w_Rd;    // Writes in the Destination Register
             end

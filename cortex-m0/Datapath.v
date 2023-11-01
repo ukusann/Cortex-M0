@@ -28,6 +28,7 @@ module Datapath(
     input wire rst,
     
     input wire wr_en,
+    input wire branch,
     input wire new_pc_en,
     input wire cu_decode,
     input wire cu_execute,
@@ -36,6 +37,7 @@ module Datapath(
     input wire ld_sp,
     input wire ld_lr,
     input wire ld_pc,
+   
     
     // Register Signal
     input wire ld_rd,
@@ -49,7 +51,9 @@ module Datapath(
     
     // Control Signals
     output wire update_flags, // S == 1
-    output wire write_rd      // needs to write in Rd
+    output wire write_rd,     // needs to write in Rd
+    output wire ig_ex,        // Ignore execute state 
+    output wire br_en         // a branch needs to be executed
     
     );
   
@@ -125,6 +129,8 @@ module Datapath(
             ld_sp,
             ld_lr,
             ld_pc,
+            
+            branch,
     
     // Register Signal
             ld_rd,
@@ -212,9 +218,7 @@ module Datapath(
                             //      L: Load/Store bit
    
     
-    // ________________________________________________________________________
-                    /* ---- Update Program Counter ---- */
-   assign w_PC = (new_pc_en)? PC + 4 : w_PC;
+
     // ________________________________________________________________________
                     /* ---- Instruction Register Decode ---- */
    
@@ -230,6 +234,8 @@ module Datapath(
     // Instruction Register:
     IR,
     
+    // Conditional Flags
+    n, z, c, v,
     // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- OUTPUTS ---- */
      inst, // Defines the Instruction to execute 
@@ -264,8 +270,8 @@ module Datapath(
    
      
     // Single Data Transfer Flags:
-    single_trans_f // Data Transfer flags ( P, U, B, W, L):
-                  
+    single_trans_f, // Data Transfer flags ( P, U, B, W, L):
+    ig_ex
     );
  
  
@@ -279,13 +285,14 @@ module Datapath(
     
     // Permition to write:
     assign write_rd = (inst != `NO_INST);
-  
+    assign br_en = !ig_ex & (inst == `B || inst == `BX || inst == `ERET );
+    
   ALU alu(
     
     clk,rst,
     cu_execute,
 
-    instrution, // Defines the Instruction to execute
+    inst, // Defines the Instruction to execute
 
     Rn, // Rn Register
     Rm, // Rm Register
@@ -293,6 +300,12 @@ module Datapath(
 
     imm_shift, // Immediate offset Shift
     imm_OP_2,  // Operand 2 Immediate
+    
+        //  Branch:
+    br_L,      // Link bit 
+    br_offset, // Branch offset
+    LR,
+    PC,  
 
     I, // Enable Immediate
     S, // Set condition codes    
@@ -302,6 +315,9 @@ module Datapath(
     
     // Outputs
     w_n,w_z,w_c, w_v,
+    
+    w_LR,
+    w_PC,
     w_Rd
     );
     
