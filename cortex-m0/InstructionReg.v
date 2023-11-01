@@ -195,7 +195,7 @@ module InstructionReg(
     // Operand 2 = Register:
     
     assign addr_Rs  = (I_s4 & data_proc) ? IR[11: 8] : 4'h0;
-    assign addr_Rm  = ( !IMM || opcode == `OP_MOV_LAS ) ? IR[3:0] : 4'h0;
+    assign addr_Rm  = ( !IMM && !uncond ) ? IR[3:0] : 4'h0;
     assign stype    = IR[ 6: 5];
     
     // Operand 2 = Immediate:
