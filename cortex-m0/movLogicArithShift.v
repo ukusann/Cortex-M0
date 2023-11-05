@@ -48,7 +48,6 @@ module movLogicArithShift(
     wire lr;
     wire ar;
     
-    reg w_rd;
     
     reg [33:0]res;
     reg [7:0] count;
@@ -77,7 +76,6 @@ module movLogicArithShift(
     always @( posedge en_inst & ll)  begin
         res = {1'b0,Rm,1'b0};
         count = operand2;
-        w_rd = 1'b0;
         c = carry_in;
         
         while (count > 0) begin
@@ -86,7 +84,6 @@ module movLogicArithShift(
             count = count -1'b1;
         
         end
-        w_rd <= 1;
     end 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
@@ -95,7 +92,6 @@ module movLogicArithShift(
     always @( posedge en_inst & (lr | ar) ) begin
         res = {1'b0,Rm,1'b0};
         count = operand2;
-        w_rd = 1'b0;
         c = carry_in;
         
         while (count > 0) begin
@@ -106,7 +102,6 @@ module movLogicArithShift(
         if (ar) begin
             res[32] = Rm[31];  // Saves the sign of the varaible
         end 
-        w_rd = 1;
     end    
     
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
@@ -120,8 +115,8 @@ module movLogicArithShift(
     assign Rd  = res[32:1];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (w_rd & S)?           c             : carry_in;
-    assign zero_out   = (w_rd & S)? (res[32:1] == 32'h0000) :  zero_in;
-    assign neg_out    = (w_rd & S)?         res[32]         :   neg_in;
+    assign carry_out  = (en_inst & S)?           c             : carry_in;
+    assign zero_out   = (en_inst & S)? (res[32:1] == 32'h0000) :  zero_in;
+    assign neg_out    = (en_inst & S)?         res[32]         :   neg_in;
     
 endmodule
