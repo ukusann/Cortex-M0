@@ -38,7 +38,6 @@ module op_add(
 
     reg [32:0]res;
     reg c;   
-    reg w_rd;
 
     initial begin
         res = 33'd0;
@@ -64,17 +63,16 @@ module op_add(
     always @( posedge en_inst & (adc_imm | add_imm))  begin
         res = adc_imm ? {1'b0,Rn} + {21'h0, imm_operand} + {32'h0, carry_in}
                 : {1'b0,Rn} + {21'h0, imm_operand}; 
-        c = res[33];
-        w_rd <= 1;
+        c = res[32];
     end 
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
                 /* ---- ADCS reg and ADD reg ---- */
            
     always @( posedge en_inst & (adc_reg | add_reg) ) begin
-        res = adc_reg ? {1'b0,Rn} + {1'b0, Rm} + {32'h0, carry_in}
+        res = adc_reg ? {1'b0, Rn} + {1'b0, Rm} + {32'h0, carry_in}
                 : {1'b0,Rn} + {1'b0, Rm}; 
-        c = res[33];
+        c = res[32];
 
         if(rrext) 
         begin
@@ -86,36 +84,39 @@ module op_add(
         begin
             if(!stype[1] & !stype[0]) // LSL
             begin
-                res = res << imm_shift;
-                c = res[33];
+                res <= res << imm_shift;
+                c = res[32];
             end
             else if(!stype[1] & stype[0]) // LSR
             begin
-                c = res[imm_shift - 1];
-                res = res >> imm_shift;
+                if(imm_shift == 5'h0)
+                    c = 1'b0;
+                else
+                    c = res[imm_shift - 1];
+                res = (res >> imm_shift);
             end
             else if(!stype[1] & stype[0]) // ASR
             begin
-                c = res[imm_shift - 1];
-                res = {res[32], res[31:0] >> imm_shift};
+                if(imm_shift == 5'h0)
+                    c = 1'b0;
+                else
+                    c = res[imm_shift - 1];
+                res = ({res[32], res[31:0] >> imm_shift});
             end
         end
-        w_rd <= 1;
     end    
     
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-       /* ---- ARITHMETIC SHIFT RIGHT ---- */
 
     
     // ====================================================================
     // ====================================================================
                     /* ---- OUTPUT ---- */
     
-    assign Rd  = res[32:1];
+    assign Rd  = res[31:0];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (w_rd & S)?           c             : carry_in;
-    assign zero_out   = (w_rd & S)? (res[32:1] == 32'h0000) :  zero_in;
-    assign neg_out    = (w_rd & S)?         res[32]         :   neg_in;
+    assign carry_out  = (en_inst & S)?           c             : carry_in;
+    assign zero_out   = (en_inst & S)? (res[31:0] == 32'h0000) :  zero_in;
+    assign neg_out    = (en_inst & S)? (res[31]   == 1'b1    ) :   neg_in;
     
 endmodule
