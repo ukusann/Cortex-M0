@@ -121,9 +121,11 @@ module coreRegisters(
             
             // Test
             // core_reg[0] = 32'h00000000;
-            // core_reg[1] = 32'h00000101;
-            // core_reg[2] = 32'h00000102;
-            // core_reg[3] = 32'h00000103;
+            core_reg[1] = 32'h5; // Rm test
+            //core_reg[2] = 32'hFFFFF001; // Rn test
+            core_reg[2] = 32'h2; // Rn test
+            core_reg[3] = 32'h5; // Rd test
+
             
       end
     endtask
