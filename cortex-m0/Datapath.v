@@ -272,6 +272,7 @@ module Datapath(
     single_trans_f, // Data Transfer flags ( P, U, B, W, L):
     
     write_rd,
+    update_flags,
     br_en,
     
     ig_ex
