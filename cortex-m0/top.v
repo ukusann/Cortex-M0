@@ -40,8 +40,14 @@ module cortex_m0(
     
     ControlUnit cu(
             clk, rst,
+            update_flags,
+            write_rd,
+            ig_ex,
+            br_en,
             cu_wr_mem,
+            branch,
             cu_decode,
+            cu_execute,
             ld_sp,
             ld_lr,
             ld_pc,
@@ -57,14 +63,20 @@ module cortex_m0(
     Datapath dp(
             clk, rst, 
             cu_wr_mem,
+            branch,
             cu_decode,
+            cu_execute,
             ld_sp,
             ld_lr,
             ld_pc,
             ld_rd,
             ld_apsr,
             ld_ipsr,
-            ild_primask
+            ild_primask,
+            update_flags,
+            write_rd,
+            ig_ex,
+            br_en
             );
     
  // ----------------------------------------------------------

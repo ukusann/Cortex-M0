@@ -1,11 +1,30 @@
 `timescale 1ns / 1ps
-
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 10/14/2023 11:31:06 AM
+// Design Name: 
+// Module Name: InstructionReg
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 `include "Defines.v"
+
 
 // _________________________________________________________________________________________________________
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // =========================================================================================================
-                        /* -------- Module Instruction Register Begin: -------- */
+                        /* -------- Module instruction Register Begin: -------- */
 
 
 module InstructionReg(
@@ -19,12 +38,18 @@ module InstructionReg(
     // Instruction Register:
     input wire [31:0] IR,
     
+    input wire n, 
+    input wire z, 
+    input wire c, 
+    input wire v,
+    
+    
     // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- OUTPUTS ---- */
     output wire [4:0] instruction, // Defines the Instruction to execute
-    output wire IMM,               // Enable Immediate
-    output wire    S,              // Set condition codes    
-    output wire [ 1:0] stype,      // Shift Type
+    output wire IMM,          // Enable Immediate
+    output wire    S,         // Set condition codes    
+    output wire [ 1:0] stype, // Shift Type
    
     // Registers:
     output wire [ 3:0] addr_Rn,  // 1st Operand Register or base register   
@@ -52,16 +77,21 @@ module InstructionReg(
    
      
     // Single Data Transfer Flags:
-    output wire [4:0] singlet_flags // Data Transfer flags ( P, U, B, W, L):
+    output wire [4:0] singlet_flags, // Data Transfer flags ( P, U, B, W, L):
                             //      P: Pre/Post Indexing bit
                             //      U: Up/Down bit
                             //      B: Byte/Word bit
                             //      W: Write-back bit
                             //      L: Load/Store bit
    
+   output wire write_rd,    // write Result Register
+   output wire update_flags,// update condition codes
+   output wire br_en,       // Branch Instruction
+                       
+   output wire ig_ex        // Ignore Instruction
     );
 
-    // Control Flags
+    
     wire data_proc;     // Data-processing and miscellaneous instructios
     wire single_transf; // Load/Store Word, Unsigned Byte IMMEDIAT, LITERAL, REGISTERS
     wire uncond;        // Unconditions Instructions
@@ -122,12 +152,17 @@ module InstructionReg(
     // Operand 2 = Register:
     
     assign addr_Rs  = (I_s4 & data_proc) ? IR[11: 8] : 4'h0;
-    assign addr_Rm  = ( !IMM || opcode == `OP_MOV_LAS ) ? IR[3:0] : 4'h0;
-    assign stype    = ( !IMM  ) ? IR[ 6: 5] : `STYPE_RR;
+    assign addr_Rm  = ((!IMM || opcode == `OP_MOV_LAS || 
+                                opcode == `OP_ADCS || opcode == `OP_ADDS ||
+                                opcode == `OP_SBCS || opcode == `OP_SUBS || 
+                                opcode == `OP_ANDS || opcode == `OP_ORRS ||
+                                opcode == `OP_EORS)  
+                                && (single_transf | data_proc) ) ? IR[3:0] : 4'h0;
+    assign stype    = IR[ 6: 5];
     
     // Operand 2 = Immediate:
     assign imm12     = (IMM) ? IR[11:0] : 12'b000000000000;
-    assign imm5      = (IMM) ? IR[11: 7] : 5'h00;
+    assign imm5      = IR[11: 7];
   
     // General Data and Flags Uncondition Instructions:
     assign imod     = (uncond) ? IR[19:18] : 8'h0;
@@ -152,9 +187,42 @@ module InstructionReg(
              /* ----- Definition of the Instruction -----*/
     
     
-    assign instruction = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS : `NO_INST;
+    assign instruction = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS :
+                        (               branch              ) ? `B  :
+                        (data_proc & (opcode == `OP_BX)     ) ? `BX :
+                        (data_proc & (opcode == `OP_ERET)   ) ? `OP_ERET :
+                        (data_proc & (opcode == `OP_ADDS)   ) ? `ADD : 
+                        (data_proc & (opcode == `OP_ADCS)   ) ? `ADC :
+                        (data_proc & (opcode == `OP_SBCS)   ) ? `SBC :
+                        (data_proc & (opcode == `OP_SUBS)   ) ? `SUB :
+                        (data_proc & (opcode == `OP_ANDS)   ) ? `AND :
+                        (data_proc & (opcode == `OP_ORRS)   ) ? `ORR :
+                        (data_proc & (opcode == `OP_EORS)   ) ? `EOR :
+                        `NO_INST;
     
+    
+    // ==============================================================
+    // ==============================================================
+                    /* ---- Condition Compare ---- */
+    
+    
+    assign ig_ex = ( instruction == `NO_INST ) ? 1'b1 : // No Instruction Defined
+                   (    cond == `COND_UN    ) ? 1'b0 : // Unconditional Instruction
+                   (    cond == `COND_AL    ) ? 1'b0 : // Always (ignor flags)
+                   ( cond == `COND_EQ &&  z ) ? 1'b0 : // Equal
+                   ( cond == `COND_NE && !z ) ? 1'b0 : // NOT Equal
+                   ( cond == `COND_CS &&  c ) ? 1'b0 : // CARRY SET
+                   ( cond == `COND_CC && !c ) ? 1'b0 : // CARRY CLEAR
+                   ( cond == `COND_MI &&  n ) ? 1'b0 : // Negative
+                   ( cond == `COND_PL && !n ) ? 1'b0 : // Positive or Zero
+                   ( cond == `COND_VS &&  v ) ? 1'b0 : // OVERFLOW has occurred
+                   ( cond == `COND_VC && !v ) ? 1'b0 : // OVERFLOW has not occurred
+                   1'b1; // Skip the execution State
+                        
 
+    assign write_rd = !ig_ex & instruction != `ERET & instruction != `WFI & (single_transf | data_proc);
+    assign br_en    = !ig_ex & (instruction == `B || instruction == `BX || instruction == `ERET );    
+    assign update_flags = S;
 endmodule
 
 
