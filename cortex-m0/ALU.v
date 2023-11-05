@@ -28,7 +28,7 @@ module ALU(
     input wire rst,
     input wire cu_execute,
     
-    input wire [4:0] instrution, // Defines the Instruction to execute
+    input wire [4:0] instruction, // Defines the Instruction to execute
     
     input wire [31:0] Rn, // Rn Register
     input wire [31:0] Rm, // Rm Register
@@ -66,8 +66,12 @@ module ALU(
     
     );
     
-    wire inst_mov_las_en;
-    wire inst_add_en;
+    wire inst_mov_las_en;   // enable the mov/shift/rotate operation
+    wire inst_add_en;       // enable the add operation
+    wire inst_sub_en;       // enable the sub operation
+    wire inst_and_en;       // enable the and operation    
+    wire inst_or_en;        // enable the  or operation
+    wire inst_xor_en;       // enable the xor operation
 
     // Branch Operation Enable
     wire inst_brach, inst_brach_x, inst_eret;
@@ -79,6 +83,9 @@ module ALU(
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                     /* ---- LSL(S),  LSR(S), ASR(S), MOV(S) ---- */
     wire [31:0] Rd_mov_lad;
+    wire c_mov_lad;
+    wire z_mov_lad;
+    wire n_mov_lad;
     movLogicArithShift MOV_LAS(
         
         // Inputs:
@@ -93,18 +100,23 @@ module ALU(
     
         // Output
             Rd_mov_lad,          // Destination Reg
-            out_c, out_z, out_n  // Flags
+            c_mov_lad, z_mov_lad, n_mov_lad  // Flags
     );
     
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                     /* ---- ADCS and ADDS ---- */
     wire [31:0] Rd_add;
+    wire c_add;
+    wire z_add;
+    wire n_add;
     op_add ADD(
         
         // Inputs:
             clk,rst,             // System Signals
             inst_add_en,         // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            instruction,          // Instruction
             S,                   // Set flags
             Rn,                  // Register Rn
             imm_operand,         // Immediate Operand
@@ -115,9 +127,114 @@ module ALU(
 
         // Output
             Rd_add,          // Destination Reg
-            out_c, out_z, out_n  // Flags
+            c_add, z_add, n_add  // Flags
     );
     
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                    /* ---- SBC and SUB ---- */
+    wire [31:0] Rd_sub;
+    wire c_sub;
+    wire z_sub;
+    wire n_sub;
+    op_sub SUB(
+        
+        // Inputs:
+            clk,rst,             // System Signals
+            inst_sub_en,         // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            instruction,          // Instruction
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_sub,          // Destination Reg
+            c_sub, z_sub, n_sub  // Flags
+    );
+
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                    /* ---- AND ---- */
+    wire [31:0] Rd_and;
+    wire c_and;
+    wire z_and;
+    wire n_and;
+    op_and AND(
+        
+        // Inputs:
+            clk,rst,             // System Signals
+            inst_and_en,         // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_and,              // Destination Reg
+            c_and, z_and, n_and  // Flags
+    );
+
+        // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                    /* ---- OR ---- */
+    wire [31:0] Rd_or;
+    wire c_or;
+    wire z_or;
+    wire n_or;
+    op_or OR(
+        
+        // Inputs:
+            clk,rst,             // System Signals
+            inst_or_en,         // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_or,              // Destination Reg
+            c_or, z_or, n_or  // Flags
+    );
+
+        // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                    /* ---- XOR ---- */
+    wire [31:0] Rd_xor;
+    wire c_xor;
+    wire z_xor;
+    wire n_xor;
+    op_xor XOR(
+        
+        // Inputs:
+            clk,rst,             // System Signals
+            inst_xor_en,         // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_xor,              // Destination Reg
+            c_xor, z_xor, n_xor  // Flags
+    );
+
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                             /* ---- B(L)(X)(COND), ERET ---- */
@@ -154,18 +271,52 @@ module ALU(
     
     // ==================================================================================
     // ==================================================================================
-                        /* --- Instrution's Operation Enable --- */
-                        
-    assign inst_mov_las_en = cu_execute && (instrution == `MOV_LAS);
-    assign inst_add_en = cu_execute && (instrution == `ADD || instrution == `ADC);
+                        /* --- instruction's Operation Enable --- */
+    // Data processing                        
+    assign inst_mov_las_en = cu_execute && (instruction == `MOV_LAS);
+    assign inst_add_en = cu_execute && (instruction == `ADD || instruction == `ADC);
+    assign inst_sub_en = cu_execute && (instruction == `SUB || instruction == `SBC);
+    assign inst_and_en = cu_execute && (instruction == `AND);
+    assign inst_or_en  = cu_execute && (instruction == `ORR);
+    assign inst_xor_en = cu_execute && (instruction == `EOR);
 
     // Branch
-    assign inst_brach   = cu_execute && (instrution == `B);
-    assign inst_brach_x = cu_execute && (instrution == `BX);
-    assign inst_eret    = cu_execute && (instrution == `ERET);
+    assign inst_brach   = cu_execute && (instruction == `B);
+    assign inst_brach_x = cu_execute && (instruction == `BX);
+    assign inst_eret    = cu_execute && (instruction == `ERET);
                            
-   assign new_Rd = inst_mov_las_en ? Rd_mov_lad :
-                   inst_add_en     ? Rd_add : Rd;
+    assign new_Rd = inst_mov_las_en ? Rd_mov_lad :
+                    inst_add_en     ? Rd_add     :
+                    inst_sub_en     ? Rd_sub     :
+                    inst_and_en     ? Rd_and     :
+                    inst_or_en      ? Rd_or      :
+                    inst_xor_en     ? Rd_xor     : 
+                    Rd;
+
+    assign out_c = inst_mov_las_en ? c_mov_lad  :
+                    inst_add_en    ? c_add      :
+                    inst_sub_en    ? c_sub      :
+                    inst_and_en    ? c_and      :
+                    inst_or_en     ? c_or       :
+                    inst_xor_en    ? c_xor      :
+                    in_c;
+                    
+    assign out_z = inst_mov_las_en ? z_mov_lad :
+                    inst_add_en    ? z_add     :
+                    inst_sub_en    ? z_sub     :
+                    inst_and_en    ? z_and     :
+                    inst_or_en     ? z_or      :
+                    inst_xor_en    ? z_xor     :
+                    in_z;
+
+    assign out_n = inst_mov_las_en ? n_mov_lad :
+                    inst_add_en    ? n_add     :     
+                    inst_sub_en    ? n_sub     : 
+                    inst_and_en    ? n_and     :
+                    inst_or_en     ? n_or      :
+                    inst_xor_en    ? n_xor     : 
+                    in_n;
+
     // ==================================================================================
     // ==================================================================================
                         /* --- Assigns Outputs --- */
