@@ -29,14 +29,13 @@ module Datapath(
     
     input wire wr_en,
     input wire branch,
-    input wire cu_decode,
     input wire cu_execute,
     
     // Control Signals
     input wire ld_sp,
     input wire ld_lr,
     input wire ld_pc,
-   
+    input wire ld_ir,   
     
     // Register Signal
     input wire ld_rd,
@@ -48,12 +47,19 @@ module Datapath(
     // Priority Mask Register Signal
     input wire ld_primask,
     
+    // Memory 
+    input wire [31:0]dout_flash,
+    
+    
+    // Memory adrresses:
+    output wire [9:0] flash_addr_PC,
+    
     // Control Signals
     output wire update_flags, // S == 1
     output wire write_rd,     // needs to write in Rd
     output wire ig_ex,        // Ignore execute state 
-    output wire br_en         // a branch needs to be executed
-    
+    output wire br_en,        // a branch needs to be executed
+    output wire br_L          // needs to write in LR (Link Register)
     );
   
 // ____________________________________________________________________________________________________
@@ -61,10 +67,6 @@ module Datapath(
 // ====================================================================================================
 // ====================================================================================================
                                 /* Memory and Core Registers*/
-  
-    reg [31:0] base_addr;
-    reg [31:0] w_data;
-    wire [31:0] r_data;
 
     wire [31:0] w_SP;     // Write Stack Pointer 
     wire [31:0] w_LR;     // Write Link Register 
@@ -96,29 +98,16 @@ module Datapath(
     wire [ 5:0] IPSR;   // Exception Numbers
     
     wire PMask;           // Enable Priority
-  
-    initial begin
-        base_addr <= 32'h00000004;
-        w_data    <= 32'h00000000;
-        
-    end
-      
-    
+
+
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-    
-    Memory mem(
-            clk,rst, 
-            wr_en,   
-            PC,
-            base_addr, 
-            w_data, 
-            IR,
-            r_data
-            );
-              
+                                /* Memory Controller */
+     
+                  
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+                                /* Core Registers */ 
                
     coreRegisters CoreReg(
     // System Signals
@@ -179,16 +168,13 @@ module Datapath(
             PMask    // Read Enable Priority
     );
     
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
- 
- 
+    
 // ____________________________________________________________________________________________________
 // ====================================================================================================
 // ====================================================================================================
 // ====================================================================================================
-                          /* Instruction Register and Program Counter*/
-  
+                          /* Instruction Register and Instruction Decoder */
+    
     wire [4:0] inst;         // Instruction to Execute
     wire    I;         // Immediate Operand or Immediate Offset Enable     
     wire    S;         // Set condition codes
@@ -216,13 +202,24 @@ module Datapath(
                             //      W: Write-back bit
                             //      L: Load/Store bit
    
+ 
+    // ________________________________________________________________________
+                       /* ---- Instruction Register ---- */
+ InstReg InstReg(
+    rst,
+    ld_ir,
+    dout_flash,
     
-
+    IR
+ );
+ 
+ assign flash_addr_PC = PC[9:0];
+ 
     // ________________________________________________________________________
                     /* ---- Instruction Register Decode ---- */
    
  
- InstructionReg ins_reg(
+ InstDecoder InstDecoder(
    // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- INPUTS ---- */
     
@@ -239,8 +236,8 @@ module Datapath(
                        /* ---- OUTPUTS ---- */
      inst, // Defines the Instruction to execute 
    
-        I,         // Immediate Operand or Immediate Offset     
-        S,         // Set condition codes    
+    I,         // Immediate Operand or Immediate Offset     
+    update_flags,         // Set condition codes    
     stype,         // Shift Type
    
     // Registers:
@@ -298,6 +295,7 @@ module Datapath(
     Rn, // Rn Register
     Rm, // Rm Register
     Rs, // Rs Shift Register
+    Rd, // Rd Result Register
 
     imm_shift, // Immediate offset Shift
     imm_OP_2,  // Operand 2 Immediate
@@ -309,7 +307,7 @@ module Datapath(
     PC,  
 
     I, // Enable Immediate
-    S, // Set condition codes    
+    update_flags, // Set condition codes    
     stype, // Shift Type
     
     n, z, c, v,
@@ -322,38 +320,5 @@ module Datapath(
     w_Rd
     );
     
- 
- //================================================================
- // Core Register Write Test
-    /*
-    assign w_SP = 32'h00000002; 
-    assign w_LR = 32'hff00ff03; 
-    assign w_PC = 32'h00000004;
-    
-    assign w_Rd = 32'h06fffff2;     
-    assign addr_Rn = 4'h0;
-    assign addr_Rm = 4'h1;
-    assign addr_Rd = 4'h2;  
 
-    assign { w_n, w_z, w_c, w_v } = {1'b1, 1'b1, 1'b1, 1'b1};
-    assign w_IPSR = 6'h12;  
-    assign w_PMask = 1'b1; 
-    */
-           
- //================================================================
- // Write memory Test
-  /*             
-     always @(negedge wr_en or posedge rst) begin
-        
-        if (rst)begin
-            w_data <= 32'h00000004;        
-        end 
-        else if (!wr_en) begin
-            w_data <= w_data + 32'h00000005;
-        
-        end
-    end 
-    */
-    
- 
 endmodule

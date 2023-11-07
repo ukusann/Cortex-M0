@@ -118,8 +118,8 @@ module movLogicArithShift(
     assign Rd  = res[32:1];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (w_rd & S)?           c             : carry_in;
-    assign zero_out   = (w_rd & S)? (res[32:1] == 32'h0000) :  zero_in;
-    assign neg_out    = (w_rd & S)?         res[32]         :   neg_in;
+    assign carry_out  = (S)?           c             : carry_in;
+    assign zero_out   = (S)? (res[32:1] == 32'h0000) :  zero_in;
+    assign neg_out    = (S)?         res[32]         :   neg_in;
     
 endmodule

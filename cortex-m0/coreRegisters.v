@@ -88,8 +88,7 @@ module coreRegisters(
     // Priority Mask Register
     output wire r_PMask         // Read Enable Priority
     );
-    
-    
+
     
 //=========================================================
 /* Indexed Core Register: */
@@ -116,11 +115,12 @@ module coreRegisters(
             PRIMASK = 32'h00000000;
             
             // Test
+            /*
             core_reg[0] = 32'h00000000;
             core_reg[1] = 32'h00000101;
             core_reg[2] = 32'h00000102;
             core_reg[3] = 32'h00000103;
-            
+            */
       end
     endtask
     
@@ -169,10 +169,10 @@ module coreRegisters(
         end 
         else begin 
             if (branch) begin
-                core_reg[`PC_I] = w_PC;
+                core_reg[`PC_I] <= w_PC;
             end
             else begin
-                core_reg[`PC_I] = core_reg[`PC_I] + 32'd4;
+                core_reg[`PC_I] <= core_reg[`PC_I] + 32'd1;
             end
         end
     end    
@@ -239,6 +239,20 @@ module coreRegisters(
         end
     end 
     
+    
+    
+        
+    // *********************************
+    // test:
+    wire [31:0] R1;
+    wire [31:0] R2;
+    wire [31:0] R3;
+    
+    assign R1 = core_reg[1];
+    assign R2 = core_reg[2];
+    assign R3 = core_reg[3];
+    
+    // *********************************
 endmodule
 
     
