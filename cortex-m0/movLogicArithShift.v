@@ -19,8 +19,6 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define OP_MOV_LAS   4'b1101 // Mov and Logical and Arithemetics Shifts
-
 module movLogicArithShift(
     
     input wire clk,
@@ -47,16 +45,15 @@ module movLogicArithShift(
     wire ll;
     wire lr;
     wire ar;
-    
-    
+ 
     reg [33:0]res;
     reg [7:0] count;
     reg c;   
     
     
     initial begin
-        res = 34'd0;
-        count = 8'd0;
+        res <= 34'd0;
+        count <= 8'd0;
         c = 0;   
     end
     
@@ -72,40 +69,52 @@ module movLogicArithShift(
     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
                 /* ---- LOGIC SHIFT LEFT ---- */
-    
-    always @( posedge en_inst & ll)  begin
-        res = {1'b0,Rm,1'b0};
-        count = operand2;
-        c = carry_in;
-        
-        while (count > 0) begin
-            res = {res[32:1],1'b0,1'b0};
-            c = c | res[33]; 
-            count = count -1'b1;
-        
+    /*
+    always @( negedge clk & en_inst & ll)  begin
+        if (rst) begin
+            res <= 34'd0;
+            count <= 8'd0;
+        end
+        else begin
+            res <= {1'b0,Rm,1'b0};
+            count <= operand2;
+            c <= carry_in;
+            
+            while (count != 0) begin
+                res <= {res[32:1],1'b0,1'b0};
+                c <= c | res[33]; 
+                count <= count -8'd1;
+            
+            end
         end
     end 
-
+*/
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
 /* ---- LOGIC SHIFT RIGHT and ARITHMETIC SHIFT RIGHT---- */
-           
-    always @( posedge en_inst & (lr | ar) ) begin
-        res = {1'b0,Rm,1'b0};
-        count = operand2;
-        c = carry_in;
-        
-        while (count > 0) begin
-            res = {1'b0, 1'b0,res[32:1]};
-            c = c | res[0]; 
-            count = count -1'b1;
+      /*     
+    always @( negedge clk & (en_inst & (lr | ar) ) ) begin
+        if (rst) begin
+            res <= 34'd0;
+            count <= 8'd0;
         end
-        if (ar) begin
-            res[32] = Rm[31];  // Saves the sign of the varaible
+        else begin
+            res <= {1'b0,Rm,1'b0};
+            count <= operand2;
+            c <= carry_in;
+            
+            while (count != 0) begin
+                res <= {1'b0, 1'b0,res[32:1]};
+                c <= c | res[0]; 
+                count <= count -8'd1;
+            end
+            if (ar) begin
+                res[32] <= Rm[31];  // Saves the sign of the varaible
+            end
         end 
     end    
     
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-       /* ---- ARITHMETIC SHIFT RIGHT ---- */
+    */   /* ---- ARITHMETIC SHIFT RIGHT ---- */
 
     
     // ====================================================================
@@ -115,8 +124,30 @@ module movLogicArithShift(
     assign Rd  = res[32:1];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (en_inst & S)?           c             : carry_in;
-    assign zero_out   = (en_inst & S)? (res[32:1] == 32'h0000) :  zero_in;
-    assign neg_out    = (en_inst & S)?         res[32]         :   neg_in;
+    assign carry_out  = (S)?           c             : carry_in;
+    assign zero_out   = (S)? (res[32:1] == 32'h0000) :  zero_in;
+    assign neg_out    = (S)?         res[32]         :   neg_in;
     
+    
+     always @(posedge clk or posedge rst) begin
+        
+        if (rst) begin
+            res <= 34'd0;
+            count <= 8'd0;
+            c <= 1'b0;
+        end else if (en_inst) begin
+            res <= {1'b0, Rm, 1'b0};
+            c <= carry_in;
+        
+            for (count = 0; count < operand2; count = count + 1'b1) begin
+                if (ll) begin
+                    res <= {res[32:1], 1'b0, 1'b0};
+                end else if (lr | ar) begin
+                    res <= {1'b0, ar ? Rm[31] : 1'b0, res[32:1]};
+                end
+                c <= c | (ll ? res[33] : res[0]);
+            end
+        end
+    end
+
 endmodule

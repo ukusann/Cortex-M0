@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define SIM_TIME 8'd30
+`define SIM_TIME 8'd55
 
 module testBench();
     
@@ -36,9 +36,18 @@ module testBench();
         count <= 8'd0;
     end
     
-    cortex_m0 top(
+    
+    
+    
+    
+    
+    stm32F072 top(
         clk, rst
     ); 
+ 
+ 
+ 
+ 
  
        // clock
     always #5 clk = ~clk;

@@ -137,8 +137,8 @@ module op_sub(
     assign Rd  = res[31:0];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (en_inst & S)?           c             : carry_in;
-    assign zero_out   = (en_inst & S)? (res[31:0] == 32'h0000) :  zero_in;
-    assign neg_out    = (en_inst & S)? (res[31]   == 1'b1    ) :   neg_in;
+    assign carry_out  = (S)?           c             : carry_in;
+    assign zero_out   = (S)? (res[31:0] == 32'h0000) :  zero_in;
+    assign neg_out    = (S)? (res[31]   == 1'b1    ) :   neg_in;
     
 endmodule
