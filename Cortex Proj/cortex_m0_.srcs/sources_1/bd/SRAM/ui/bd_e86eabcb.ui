@@ -1,0 +1,29 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-467,-363",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
+#  -string -flagsOSRD
+preplace port port-id_clk -pg 1 -lvl 0 -x -30 -y -220 -defaultsOSRD
+preplace port port-id_wea -pg 1 -lvl 0 -x -30 -y -20 -defaultsOSRD
+preplace port port-id_rst -pg 1 -lvl 0 -x -30 -y -200 -defaultsOSRD
+preplace port port-id_en_sram -pg 1 -lvl 0 -x -30 -y -60 -defaultsOSRD
+preplace port port-id_sram_busy -pg 1 -lvl 2 -x 280 -y -90 -defaultsOSRD
+preplace portBus din_sram -pg 1 -lvl 0 -x -30 -y -100 -defaultsOSRD
+preplace portBus sram_addr -pg 1 -lvl 0 -x -30 -y -140 -defaultsOSRD
+preplace portBus dout_sram -pg 1 -lvl 2 -x 280 -y -60 -defaultsOSRD
+preplace inst blk_mem_gen_0 -pg 1 -lvl 1 -x 130 -y -90 -defaultsOSRD
+preplace netloc clk_1 1 0 1 0 -220n
+preplace netloc din_sram_1 1 0 1 N -100
+preplace netloc sram_addr_1 1 0 1 N -140
+preplace netloc wea_1 1 0 1 N -20
+preplace netloc rst_1 1 0 1 -10 -200n
+preplace netloc en_sram_1 1 0 1 N -60
+preplace netloc blk_mem_gen_0_rsta_busy 1 1 1 N -90
+preplace netloc blk_mem_gen_0_douta 1 0 2 0 40 260J
+levelinfo -pg 1 -30 130 280
+pagesize -pg 1 -db -bbox -sgen -190 -240 450 120
+"
+}
+

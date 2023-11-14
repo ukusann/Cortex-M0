@@ -1,0 +1,164 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x94EFC45994EFC459",
+      "device": "xc7z010clg400-1",
+      "gen_directory": "../../../../cortex_m0_.gen/sources_1/bd/Mem_Flash",
+      "name": "Mem_Flash",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2022.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "blk_mem_gen_0": ""
+    },
+    "ports": {
+      "rst": {
+        "direction": "I"
+      },
+      "A_addrss": {
+        "direction": "I",
+        "left": "10",
+        "right": "0"
+      },
+      "B_addrss": {
+        "direction": "I",
+        "left": "10",
+        "right": "0"
+      },
+      "en_Afl": {
+        "direction": "I"
+      },
+      "en_Bfl": {
+        "direction": "I"
+      },
+      "busy_Afl": {
+        "direction": "O"
+      },
+      "busy_Bfl": {
+        "direction": "O"
+      },
+      "dout_Afl": {
+        "direction": "O",
+        "left": "31",
+        "right": "0"
+      },
+      "dout_Bfl": {
+        "direction": "O",
+        "left": "31",
+        "right": "0"
+      },
+      "clk": {
+        "direction": "I"
+      }
+    },
+    "components": {
+      "blk_mem_gen_0": {
+        "vlnv": "xilinx.com:ip:blk_mem_gen:8.4",
+        "xci_name": "Mem_Flash_blk_mem_gen_0_0",
+        "xci_path": "ip/Mem_Flash_blk_mem_gen_0_0/Mem_Flash_blk_mem_gen_0_0.xci",
+        "inst_hier_path": "blk_mem_gen_0",
+        "parameters": {
+          "Assume_Synchronous_Clk": {
+            "value": "true"
+          },
+          "Coe_File": {
+            "value": "../../../../../../code/Counter.coe"
+          },
+          "Fill_Remaining_Memory_Locations": {
+            "value": "true"
+          },
+          "Load_Init_File": {
+            "value": "true"
+          },
+          "Memory_Type": {
+            "value": "Dual_Port_ROM"
+          },
+          "Register_PortA_Output_of_Memory_Primitives": {
+            "value": "false"
+          },
+          "Register_PortB_Output_of_Memory_Primitives": {
+            "value": "false"
+          },
+          "Use_RSTA_Pin": {
+            "value": "true"
+          },
+          "Use_RSTB_Pin": {
+            "value": "true"
+          },
+          "Write_Depth_A": {
+            "value": "1040"
+          },
+          "use_bram_block": {
+            "value": "Stand_Alone"
+          }
+        }
+      }
+    },
+    "nets": {
+      "A_addrss_1": {
+        "ports": [
+          "A_addrss",
+          "blk_mem_gen_0/addra"
+        ]
+      },
+      "B_addrss_1": {
+        "ports": [
+          "B_addrss",
+          "blk_mem_gen_0/addrb"
+        ]
+      },
+      "blk_mem_gen_0_douta": {
+        "ports": [
+          "blk_mem_gen_0/douta",
+          "dout_Afl"
+        ]
+      },
+      "blk_mem_gen_0_doutb": {
+        "ports": [
+          "blk_mem_gen_0/doutb",
+          "dout_Bfl"
+        ]
+      },
+      "blk_mem_gen_0_rsta_busy": {
+        "ports": [
+          "blk_mem_gen_0/rsta_busy",
+          "busy_Afl"
+        ]
+      },
+      "blk_mem_gen_0_rstb_busy": {
+        "ports": [
+          "blk_mem_gen_0/rstb_busy",
+          "busy_Bfl"
+        ]
+      },
+      "ckl_1": {
+        "ports": [
+          "clk",
+          "blk_mem_gen_0/clka",
+          "blk_mem_gen_0/clkb"
+        ]
+      },
+      "en_Afl_1": {
+        "ports": [
+          "en_Afl",
+          "blk_mem_gen_0/ena"
+        ]
+      },
+      "en_Bfl_1": {
+        "ports": [
+          "en_Bfl",
+          "blk_mem_gen_0/enb"
+        ]
+      },
+      "rst_1": {
+        "ports": [
+          "rst",
+          "blk_mem_gen_0/rsta",
+          "blk_mem_gen_0/rstb"
+        ]
+      }
+    }
+  }
+}

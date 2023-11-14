@@ -1,0 +1,33 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-460,-328",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.0r4  2019-12-20 bk=1.5203 VDI=41 GEI=36 GUI=JA:10.0 TLS
+#  -string -flagsOSRD
+preplace port port-id_rst -pg 1 -lvl 0 -x -30 -y -220 -defaultsOSRD
+preplace port port-id_en_Afl -pg 1 -lvl 0 -x -30 -y -70 -defaultsOSRD
+preplace port port-id_en_Bfl -pg 1 -lvl 0 -x -30 -y 50 -defaultsOSRD
+preplace port port-id_busy_Afl -pg 1 -lvl 2 -x 310 -y -130 -defaultsOSRD
+preplace port port-id_busy_Bfl -pg 1 -lvl 2 -x 310 -y 40 -defaultsOSRD
+preplace port port-id_clk -pg 1 -lvl 0 -x -30 -y -240 -defaultsOSRD
+preplace portBus A_addrss -pg 1 -lvl 0 -x -30 -y -130 -defaultsOSRD
+preplace portBus B_addrss -pg 1 -lvl 0 -x -30 -y -10 -defaultsOSRD
+preplace portBus dout_Afl -pg 1 -lvl 2 -x 310 -y -160 -defaultsOSRD
+preplace portBus dout_Bfl -pg 1 -lvl 2 -x 310 -y 70 -defaultsOSRD
+preplace inst blk_mem_gen_0 -pg 1 -lvl 1 -x 150 -y -40 -defaultsOSRD
+preplace netloc A_addrss_1 1 0 1 N -130
+preplace netloc B_addrss_1 1 0 1 N -10
+preplace netloc blk_mem_gen_0_douta 1 0 2 10 -210 280J
+preplace netloc blk_mem_gen_0_doutb 1 0 2 10 130 280J
+preplace netloc blk_mem_gen_0_rsta_busy 1 1 1 280 -130n
+preplace netloc blk_mem_gen_0_rstb_busy 1 1 1 280 -30n
+preplace netloc ckl_1 1 0 1 0 -240n
+preplace netloc en_Afl_1 1 0 1 N -70
+preplace netloc en_Bfl_1 1 0 1 N 50
+preplace netloc rst_1 1 0 1 -10 -220n
+levelinfo -pg 1 -30 150 310
+pagesize -pg 1 -db -bbox -sgen -190 -300 470 140
+"
+}
+0

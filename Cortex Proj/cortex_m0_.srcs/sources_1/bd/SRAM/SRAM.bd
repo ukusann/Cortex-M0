@@ -1,0 +1,130 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x16BB18B516BB18B5",
+      "device": "xc7z010clg400-1",
+      "gen_directory": "../../../../cortex_m0_.gen/sources_1/bd/SRAM",
+      "name": "SRAM",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2022.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "blk_mem_gen_0": ""
+    },
+    "ports": {
+      "clk": {
+        "direction": "I"
+      },
+      "din_sram": {
+        "direction": "I",
+        "left": "31",
+        "right": "0"
+      },
+      "sram_addr": {
+        "direction": "I",
+        "left": "5",
+        "right": "0"
+      },
+      "wea": {
+        "direction": "I"
+      },
+      "rst": {
+        "direction": "I"
+      },
+      "en_sram": {
+        "direction": "I"
+      },
+      "sram_busy": {
+        "direction": "O"
+      },
+      "dout_sram": {
+        "direction": "O",
+        "left": "31",
+        "right": "0"
+      }
+    },
+    "components": {
+      "blk_mem_gen_0": {
+        "vlnv": "xilinx.com:ip:blk_mem_gen:8.4",
+        "xci_name": "SRAM_blk_mem_gen_0_0",
+        "xci_path": "ip/SRAM_blk_mem_gen_0_0/SRAM_blk_mem_gen_0_0.xci",
+        "inst_hier_path": "blk_mem_gen_0",
+        "parameters": {
+          "Fill_Remaining_Memory_Locations": {
+            "value": "true"
+          },
+          "Register_PortA_Output_of_Memory_Primitives": {
+            "value": "false"
+          },
+          "Use_Byte_Write_Enable": {
+            "value": "false"
+          },
+          "Use_RSTA_Pin": {
+            "value": "true"
+          },
+          "Write_Depth_A": {
+            "value": "64"
+          },
+          "Write_Width_A": {
+            "value": "32"
+          },
+          "use_bram_block": {
+            "value": "Stand_Alone"
+          }
+        }
+      }
+    },
+    "nets": {
+      "blk_mem_gen_0_douta": {
+        "ports": [
+          "blk_mem_gen_0/douta",
+          "dout_sram"
+        ]
+      },
+      "blk_mem_gen_0_rsta_busy": {
+        "ports": [
+          "blk_mem_gen_0/rsta_busy",
+          "sram_busy"
+        ]
+      },
+      "clk_1": {
+        "ports": [
+          "clk",
+          "blk_mem_gen_0/clka"
+        ]
+      },
+      "din_sram_1": {
+        "ports": [
+          "din_sram",
+          "blk_mem_gen_0/dina"
+        ]
+      },
+      "en_sram_1": {
+        "ports": [
+          "en_sram",
+          "blk_mem_gen_0/ena"
+        ]
+      },
+      "rst_1": {
+        "ports": [
+          "rst",
+          "blk_mem_gen_0/rsta"
+        ]
+      },
+      "sram_addr_1": {
+        "ports": [
+          "sram_addr",
+          "blk_mem_gen_0/addra"
+        ]
+      },
+      "wea_1": {
+        "ports": [
+          "wea",
+          "blk_mem_gen_0/wea"
+        ]
+      }
+    }
+  }
+}
