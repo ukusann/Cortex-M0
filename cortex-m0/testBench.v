@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define SIM_TIME 8'd55
+`define SIM_TIME 8'd255
 
 module testBench();
     
@@ -27,13 +27,14 @@ module testBench();
      // test
     reg [7:0]count;
  
+    wire [3:0] r3;
  
      initial begin
         clk = 1'b0;
         rst = 1'b0;
         
         // test
-        count <= 8'd0;
+       // count <= 8'd0;
     end
     
     
@@ -42,7 +43,8 @@ module testBench();
     
     
     stm32F072 top(
-        clk, rst
+        clk, rst,
+        r3
     ); 
  
  
@@ -50,10 +52,10 @@ module testBench();
  
  
        // clock
-    always #5 clk = ~clk;
+    always #62 clk = ~clk;
 
 
-
+/*
 //================================================================
 // SIMULATION COUNTER
     
@@ -67,10 +69,11 @@ module testBench();
         end 
         else begin
             $finish;
+      //      count <= 8'h00;
         end
         
     end 
 
 
-
+*/
 endmodule

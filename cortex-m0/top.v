@@ -21,27 +21,44 @@
 
 
 module stm32F072(
-    input wire clk,
-    input wire rst
+    input wire clock,
+    input wire rst,
+    output wire [3:0] r3
     );
 
 
-wire flash_busy, ld_flash;
-wire [31:0] dout_flash;
+wire flash_busy, ld_flash, ld_mem, men_wr;
+wire busy_flA,busy_flB,busy_sram;
+
+wire [31:0] dout_flash_code;
+wire [31:0] din_mem;
+wire [31:0] dout_mem;
+
 wire [ 9:0] flash_addr_PC;
+wire [31:0] addr_mem;
+
 
  // ----------------------------------------------------------
  // ----------------------------------------------------------
  /* <<<<<<<<<<<<<<<<<<< Core Cortex-M0 >>>>>>>>>>>>>>>>>>>> */
 
     core corterx_m0(
-        clk,
+        clock,
         rst,
-        flash_busy,
-        dout_flash,
-    
+        busy_flA,
+        busy_flB,
+        busy_sram,
+        dout_flash_code,
+        dout_mem,
+        
+        din_mem,
         ld_flash,
-        flash_addr_PC
+        ld_mem,
+        mem_wr,
+        flash_addr_PC,
+        addr_mem,
+        
+        r3
     );       
 
 
@@ -49,13 +66,23 @@ wire [ 9:0] flash_addr_PC;
  // ----------------------------------------------------------
  /* <<<<<<<<<<<<<<<<<<<<<<<< Memory >>>>>>>>>>>>>>>>>>>>>>> */
     Mem Memory(
-        clk, rst,
+        clock, rst,
     
         ld_flash,
-        flash_addr_PC,
+        ld_mem,
+        mem_wr,
         
-        flash_busy,
-        dout_flash
+        flash_addr_PC,
+        addr_mem[10:0],
+        din_mem,
+        
+        busy_flA,
+        busy_flB,
+        busy_sram,
+        
+        dout_flash_code,
+        dout_mem
     );
-
+    
+    
 endmodule

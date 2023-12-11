@@ -33,7 +33,7 @@ module ALU(
     input wire [31:0] Rn, // Rn Register
     input wire [31:0] Rm, // Rm Register
     input wire [ 7:0] Rs, // Rs Shift Register
-    input wire [31:0] Rd, // Rd Register
+    input wire [31:0] Rd, // Rs Shift Register
     
     input wire [ 4:0]   imm_shift, // Immediate offset Shift
     input wire [11:0] imm_operand, // Operand 2 Immediate
@@ -47,11 +47,14 @@ module ALU(
     input wire                S, // Set condition codes    
     input wire [ 1:0]     stype, // Shift Type
     
+    input wire [4:0] single_trans_f,
     
     input wire in_n, 
     input wire in_z, 
     input wire in_c, 
     input wire in_v,
+   
+    input wire [31:0] dout_mem, // Output data Memory (Read/Load) 
    
    
     output wire out_n, 
@@ -62,8 +65,11 @@ module ALU(
     output wire [31:0] w_LR,     // Write Link Register 
     output wire [31:0] w_PC,     // Write Program Counter 
      
-    output wire [31:0] w_Rd
+    output wire [31:0] w_Rd,     // Write Result Reg
+    output wire [31:0] w_Rn,     // Base Offset Reg
     
+    output wire [31:0] din_mem,  // Input data Memory (Write/Store)
+    output wire [31:0] addr_mem  // Mamory Address
     );
     
     
@@ -74,6 +80,7 @@ module ALU(
     wire inst_or_en;        // enable the  or operation
     wire inst_xor_en;       // enable the xor operation
     
+    wire ld_st_en;          // enable load/store operation
     wire no_inst;           // No Instruction
     
     // Branch Operation Enable
@@ -93,7 +100,7 @@ module ALU(
     movLogicArithShift MOV_LAS(
         
         // Inputs:
-            clk,rst,             // System Signals
+            clk, rst,             // System Signals
            (cu_execute & inst_mov_las_en),// Condition to Execute Operation
             S,                   // Set flags
             Rm,                  // Register Rm
@@ -239,7 +246,27 @@ module ALU(
             c_xor, z_xor, n_xor  // Flags
     );
 
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                            /* ---- LD/ST ---- */
     
+    wire [31:0] Rn_ld_st;
+    op_ld_st LD_ST(
+        // Inputs:
+            clk,rst,
+    
+            (cu_execute & ld_st_en),
+            single_trans_f,
+            Rn,
+            (IMM) ? {20'd0, imm_operand}: Rm, // Operand 2
+   
+        // Output
+            Rn_ld_st,
+            addr_mem
+    );
+    
+ 
+ 
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                             /* ---- B(L)(X)(COND) ---- */
@@ -251,6 +278,7 @@ module ALU(
     
     op_branch BRANCH_LABEL(
         // Inputs
+            clk, rst,
             (cu_execute & inst_branch), // Condition to Execute Operation
             br_L,       // Link Condition
         
@@ -264,6 +292,7 @@ module ALU(
     
     op_branch_reg BRANCH_Reg(
         // Inputs
+            clk, rst,
             (cu_execute & inst_branch_reg), // Condition to Execute Operation
             br_L,       // Link Condition
         
@@ -289,6 +318,10 @@ module ALU(
     assign inst_and_en = (instruction == `AND);
     assign inst_or_en  = (instruction == `ORR);
     assign inst_xor_en = (instruction == `EOR);
+    
+    // Load and Store
+    assign ld_st_en = (instruction == `LD_ST);
+    
     // Branch
     assign inst_branch     = (instruction == `B);
     assign inst_branch_reg = (instruction == `BX);
@@ -299,14 +332,23 @@ module ALU(
                         /* --- Assigns Outputs --- */
 
     // Result Register:
-    assign w_Rd = inst_mov_las_en ? Rd_mov_lad :
-                  inst_add_en     ? Rd_add     :
-                  inst_sub_en     ? Rd_sub     :
-                  inst_and_en     ? Rd_and     :
-                  inst_or_en      ? Rd_or      :
-                  inst_xor_en     ? Rd_xor     : 
+    assign w_Rd = (ld_st_en & single_trans_f[`L_I] )? dout_mem   :
+                                  inst_mov_las_en   ? Rd_mov_lad :
+                                  inst_add_en       ? Rd_add     :
+                                  inst_sub_en       ? Rd_sub     :
+                                  inst_and_en       ? Rd_and     :
+                                  inst_or_en        ? Rd_or      :
+                                  inst_xor_en       ? Rd_xor     : 
+                                  32'h0;
+    
+    // Base Offset Register:
+    assign w_Rn = (ld_st_en)? Rn_ld_st :
                   32'h0;
 
+    // Input data Memory (Write/Store)
+    assign  din_mem = (ld_st_en & !single_trans_f[`L_I] )? Rd :
+                       32'd0; 
+    
 
     //  Carry Flag
     assign out_c = inst_mov_las_en ? c_mov_lad :

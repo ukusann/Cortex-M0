@@ -129,7 +129,7 @@ module movLogicArithShift(
     assign neg_out    = (S)?         res[32]         :   neg_in;
     
     
-     always @(posedge clk or posedge rst) begin
+     always @(negedge clk or posedge rst) begin
         
         if (rst) begin
             res <= 34'd0;

@@ -39,6 +39,7 @@ module Datapath(
     
     // Register Signal
     input wire ld_rd,
+    input wire ld_rn,
     
     // Program Status Registers Signals
     input wire ld_apsr,
@@ -49,17 +50,25 @@ module Datapath(
     
     // Memory 
     input wire [31:0]dout_flash,
+    input wire [31:0] dout_mem, // Output data Memory (Read/Load) 
     
+    output wire [31:0] din_mem,  // Input data Memory (Write/Store)
     
     // Memory adrresses:
     output wire [9:0] flash_addr_PC,
+    output wire [31:0] addr_mem, 
     
     // Control Signals
     output wire update_flags, // S == 1
     output wire write_rd,     // needs to write in Rd
+    output wire write_rn,     // needs to wirte in Rn
+    output wire mem_en,       // Enable Memory
+    output wire mem_wr,       // Memory Write/Read Mode 
     output wire ig_ex,        // Ignore execute state 
     output wire br_en,        // a branch needs to be executed
-    output wire br_L          // needs to write in LR (Link Register)
+    output wire br_L,          // needs to write in LR (Link Register)
+    
+    output wire [3:0] r3
     );
   
 // ____________________________________________________________________________________________________
@@ -74,6 +83,7 @@ module Datapath(
     
      
     wire [31:0] w_Rd;     // Write destanation Reg 
+    wire [31:0] w_Rn;     // Write Base offset Reg 
     wire [ 3:0] addr_Rn;  // Rn address
     wire [ 3:0] addr_Rm;  // Rm address
     wire [ 3:0] addr_Rd;  // Rd address
@@ -99,12 +109,7 @@ module Datapath(
     
     wire PMask;           // Enable Priority
 
-
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-                                /* Memory Controller */
-     
-                  
+                
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
                                 /* Core Registers */ 
@@ -122,6 +127,7 @@ module Datapath(
     
     // Register Signal
             ld_rd,
+            ld_rn,
             
     // Program Status Registers Signals
             ld_apsr,
@@ -137,6 +143,7 @@ module Datapath(
     
     // General Purpose Registers
             w_Rd,     // Write destanation Reg 
+            w_Rn,     // Write base offset Reg 
             addr_Rn,  // Rn address
             addr_Rm,  // Rm address
             addr_Rd,  // Rd address
@@ -165,7 +172,9 @@ module Datapath(
             IPSR,          // Read Exception Numbers
     
     // Priority Mask Register
-            PMask    // Read Enable Priority
+            PMask,    // Read Enable Priority
+            
+            r3
     );
     
     
@@ -183,7 +192,6 @@ module Datapath(
     wire [ 4:0]  imm_shift; // Immediate offset Shift
     wire [11:0]   imm_OP_2; // Operand 2 Immediate
   
-    wire br_L;             // Link bit 
     wire [23:0] br_offset; // Branch offset  
 
     
@@ -212,8 +220,6 @@ module Datapath(
     
     IR
  );
- 
- assign flash_addr_PC = PC[9:0];
  
     // ________________________________________________________________________
                     /* ---- Instruction Register Decode ---- */
@@ -269,6 +275,8 @@ module Datapath(
     single_trans_f, // Data Transfer flags ( P, U, B, W, L):
     
     write_rd,
+    write_rn,
+    mem_en,
     br_en,
     
     ig_ex
@@ -310,15 +318,29 @@ module Datapath(
     update_flags, // Set condition codes    
     stype, // Shift Type
     
+    single_trans_f, // Data Transfer flags ( P, U, B, W, L
     n, z, c, v,
+    dout_mem, // Output data Memory (Read/Load)
     
     // Outputs
     w_n,w_z,w_c, w_v,
     
     w_LR,
     w_PC,
-    w_Rd
+    w_Rd,
+    w_Rn,
+    din_mem,  // Input data Memory (Write/Store)
+    addr_mem  // Mamory Address
     );
     
+    
+    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+                                /* Memory Controller */
+     
+     assign mem_wr = !single_trans_f[`L_I] & inst == `LD_ST;
+     
+     assign flash_addr_PC = PC[10:0];
+  
 
 endmodule

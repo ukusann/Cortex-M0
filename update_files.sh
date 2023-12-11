@@ -1,0 +1,1 @@
+cp ~/cortex-m0_project/vivado_proj/cortex_m0_/cortex_m0_.srcs/sources_1/new/* cortex-m0/

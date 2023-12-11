@@ -35,6 +35,7 @@ module coreRegisters(
     
     // Register Signal
     input wire ld_rd,
+    input wire ld_rn,
     
     // Program Status Registers Signals
     input wire ld_apsr,
@@ -51,7 +52,8 @@ module coreRegisters(
      
     
     // General Purpose Registers
-    input wire [31:0] w_Rd,     // Write destanation Reg 
+    input wire [31:0] w_Rd,     // Write destanation Reg
+    input wire [31:0] w_Rn,     // Write base offset Reg (Load/Store) 
     input wire [ 3:0] addr_Rn,  // Rn address
     input wire [ 3:0] addr_Rm,  // Rm address
     input wire [ 3:0] addr_Rd,  // Rd address
@@ -86,7 +88,9 @@ module coreRegisters(
     
     
     // Priority Mask Register
-    output wire r_PMask         // Read Enable Priority
+    output wire r_PMask,        // Read Enable Priority
+    
+    output wire [3:0] r3
     );
 
     
@@ -107,12 +111,12 @@ module coreRegisters(
     reg [4:0] i;
     begin
             for ( i = 5'd0; i < `SIZE_CREG_I; i = i + 1) begin
-                    core_reg[i] = 32'h00000000;
+                    core_reg[i] <= 32'h00000000;
             end
             
-            core_reg[`LR_I] = 32'hffffffff;
-            PSR = 32'h0000003f;
-            PRIMASK = 32'h00000000;
+            core_reg[`LR_I] <= 32'hffffffff;
+            PSR <= 32'h0000003f;
+            PRIMASK <= 32'h00000000;
             
             // Test
             /*
@@ -161,50 +165,6 @@ module coreRegisters(
 // Core Registers Write:
     
     
-    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
-    // Program Counter:
-    always @( posedge ld_pc or posedge rst) begin
-        if (rst)begin
-            core_reg[`PC_I] <= 32'd0;
-        end 
-        else begin 
-            if (branch) begin
-                core_reg[`PC_I] <= w_PC;
-            end
-            else begin
-                core_reg[`PC_I] <= core_reg[`PC_I] + 32'd1;
-            end
-        end
-    end    
-    
-
-    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
-    // Link Register:
-    always @( posedge ld_lr or posedge rst) begin
-        if (rst)begin
-            core_reg[`LR_I] <= 32'hffffffff;
-        end 
-        else begin 
-            if (branch) begin
-                core_reg[`LR_I] = w_LR;
-            end
-        end
-    end    
-    
-    
-    // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
-    // Stack Point Register:
-    always @( posedge ld_sp or posedge rst) begin
-        if (rst)begin
-            core_reg[`SP_I] <= 32'h0;
-        end 
-        else begin 
-            if (branch) begin
-                core_reg[`SP_I] <= w_SP;
-            end
-        end
-    end    
-        
         
     // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
     // General Purpose Registers:
@@ -213,11 +173,43 @@ module coreRegisters(
          if (rst)begin
                 resetCoreReg();
         end 
-    
-        else begin 
+        else begin
+            // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+            // Stack Point Register:
+            
+            if (ld_sp) begin
+                core_reg[`SP_I] <= w_SP;
+            
+            end 
+            // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+            // Program Counter:
+
+            if (ld_pc)  begin 
+                if (branch) begin
+                    core_reg[`PC_I] <= w_PC;
+                end
+                else begin
+                    core_reg[`PC_I] <= core_reg[`PC_I] + 32'd1;
+                end
+            end
+            
+            // -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  -----  ----
+            // Link Register:
+            
+            if (branch & ld_lr) begin
+                core_reg[`LR_I] <= w_LR;
+            end
+        
+        
             if (ld_rd) begin
               core_reg[addr_Rd] <= w_Rd;    // Writes in the Destination Register
             end
+        
+        
+            if (ld_rn) begin
+              core_reg[addr_Rn] <= w_Rn;    // Writes in the Destination Register
+            end
+        
             
             if (ld_apsr) begin
               // Writes in the Condition Flgas
@@ -247,10 +239,15 @@ module coreRegisters(
     wire [31:0] R1;
     wire [31:0] R2;
     wire [31:0] R3;
+    wire [31:0] R4;
+    
     
     assign R1 = core_reg[1];
     assign R2 = core_reg[2];
     assign R3 = core_reg[3];
+    assign R4 = core_reg[4];
+    
+    assign r3 = {1'b1, R3 [2:0]}; 
     
     // *********************************
 endmodule

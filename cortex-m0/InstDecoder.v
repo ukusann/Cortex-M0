@@ -84,6 +84,8 @@ module InstDecoder(
                             //      L: Load/Store bit
    
    output wire write_rd,    // write Result Register
+   output wire write_rn,    // write Base Offset Reg
+   output wire mem_en,
    output wire br_en,       // Branch Instruction
                        
    output wire ig_ex        // Ignore Instruction
@@ -179,8 +181,9 @@ module InstDecoder(
     // ==============================================================
              /* ----- Definition of the Instruction -----*/
     
-    
+
     assign instrution = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS :
+                        (            single_transf          ) ? `LD_ST :
                         (               branch              ) ? `B :
                         (   data_proc & (opcode == `OP_BX)  ) ? `BX :
                         (  data_proc & (opcode == `OP_ERET) ) ? `OP_ERET :
@@ -213,8 +216,10 @@ module InstDecoder(
                    1'b1; // Skip the execution State
                         
 
-    assign write_rd = !ig_ex & instrution != `BX & instrution != `ERET & instrution != `WFI & (single_transf | data_proc);
+    assign write_rd = !ig_ex & instrution != `BX & instrution != `ERET & instrution != `WFI & 
+                       ((single_transf & singlet_flags[`L_I] ) | data_proc);
     assign br_en    = !ig_ex & (instrution == `B || instrution == `BX || instrution == `ERET );    
-    
+    assign write_rn = !ig_ex & single_transf & singlet_flags[`W_I];
+    assign mem_en   = !ig_ex & single_transf;
     
 endmodule

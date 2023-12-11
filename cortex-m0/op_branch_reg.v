@@ -21,15 +21,17 @@
 
 
 module op_branch_reg(
-
-      input wire inst_brach_reg,
-        input wire Link,
-        
-        input wire [31:0] REG,
-        input wire [31:0] in_PC,
-        
-        output wire [31:0] out_PC,
-        output wire [31:0] LR
+    
+    input wire clk,
+    input wire rst,
+    input wire inst_brach_reg,
+    input wire Link,
+    
+    input wire [31:0] REG,
+    input wire [31:0] in_PC,
+    
+    output wire [31:0] out_PC,
+    output wire [31:0] LR
     );
     
     reg [31:0] pc;
@@ -40,15 +42,21 @@ module op_branch_reg(
         lr = 32'd0;
     end
     
-    always @(posedge inst_brach_reg) begin
-    
-        pc =  REG;
+    always @(posedge ( clk & inst_brach_reg) or posedge rst) begin
         
-        if (Link) begin
-            lr = in_PC + 32'd1;
-        end
-        else begin
-            lr = 32'd0;
+        if (rst) begin
+            pc <= 32'd0;
+            lr <= 32'd0;
+        end else begin
+        
+            pc <=  REG;
+            
+            if (Link) begin
+                lr <= in_PC + 32'd1;
+            end
+            else begin
+                lr <= 32'd0;
+            end
         end
     end
     

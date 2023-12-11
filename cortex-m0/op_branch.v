@@ -21,6 +21,8 @@
 
 
 module op_branch(
+        input wire clk,
+        input wire rst,
         input wire inst_brach,
         input wire Link,
         
@@ -39,20 +41,25 @@ module op_branch(
         lr = 32'd0;
     end
     
-    always @(posedge inst_brach) begin
-    
-        if (offset[23]) begin
-            pc =  in_PC - ( (offset[23:0] ^ 24'hFFFFFF) + 32'd1);
-        end
-        else begin
-            pc =  in_PC + offset;
-        end
-        if (Link) begin
-            lr = in_PC + 32'd1;
-        end
-        else begin
-            lr = 32'd0;
-        end
+    always @(negedge (clk & inst_brach) or posedge rst) begin
+        
+        if (rst) begin
+            pc <= 32'd0;
+            lr <= 32'd0;
+        end else begin
+            if (offset[23]) begin
+                pc <=  in_PC - ( (offset[23:0] ^ 24'hFFFFFF) + 32'd1);
+            end
+            else begin
+                pc <=  in_PC + offset;
+            end
+            if (Link) begin
+                lr <= in_PC + 32'd1;
+            end
+            else begin
+                lr <= 32'd0;
+            end
+        end     
     end
     
     assign out_PC = pc;

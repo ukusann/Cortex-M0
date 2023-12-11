@@ -35,8 +35,8 @@ module op_xor(
     reg c; 
     
     initial begin
-        res = 33'd0;
-        c = 1'b0;
+        res <= 33'd0;
+        c <= 1'b0;
     end
     
     // ====================================================================
@@ -47,49 +47,54 @@ module op_xor(
     // ====================================================================
     // ====================================================================
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- XOR imm ---- */
-    
-    always @( posedge en_inst & (IMM))  begin
-        res = {1'b0,Rn} ^ {21'h0, imm_operand};
-    end 
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- XOR reg ---- */
+                /* ---- XOR ---- */
            
-    always @( posedge en_inst & (!IMM) ) begin
-        res =  {1'b0, Rn} ^ {1'b0, Rm};
-
-        if(rrext) 
-        begin
-            c = res[0];
-            res = res >> 1;
+    always @( negedge (clk & en_inst) or posedge rst ) begin
+        if (rst) begin
+            res <= 33'd0;
+            c <= 1'b0;
         end
+        else begin
+            if (IMM) begin
+                res = {1'b0,Rn} ^ {21'h0, imm_operand};
+            end
+            
+            else if (!IMM) begin
+                res =  {1'b0, Rn} ^ {1'b0, Rm};
         
-        if(srval) 
-        begin
-            if(!stype[1] & !stype[0]) // LSL
-            begin
-                res <= res << imm_shift;
-                c = res[32];
+                if(rrext) 
+                begin
+                    c = res[0];
+                    res = res >> 1;
+                end
+                
+                if(srval) 
+                begin
+                    if(!stype[1] & !stype[0]) // LSL
+                    begin
+                        res <= res << imm_shift;
+                        c = res[32];
+                    end
+                    else if(!stype[1] & stype[0]) // LSR
+                    begin
+                        if(imm_shift == 5'h0)
+                            c = 1'b0;
+                        else
+                            c = res[imm_shift - 1];
+                        res = (res >> imm_shift);
+                    end
+                    else if(!stype[1] & stype[0]) // ASR
+                    begin
+                        if(imm_shift == 5'h0)
+                            c = 1'b0;
+                        else
+                            c = res[imm_shift - 1];
+                        res = ({res[32], res[31:0] >> imm_shift});
+                    end
+                end
             end
-            else if(!stype[1] & stype[0]) // LSR
-            begin
-                if(imm_shift == 5'h0)
-                    c = 1'b0;
-                else
-                    c = res[imm_shift - 1];
-                res = (res >> imm_shift);
-            end
-            else if(!stype[1] & stype[0]) // ASR
-            begin
-                if(imm_shift == 5'h0)
-                    c = 1'b0;
-                else
-                    c = res[imm_shift - 1];
-                res = ({res[32], res[31:0] >> imm_shift});
-            end
-        end
+        end         
     end    
     
 
