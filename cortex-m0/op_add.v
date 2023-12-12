@@ -40,8 +40,8 @@ module op_add(
     reg c;   
 
     initial begin
-        res = 33'd0;
-        c = 1'b0; 
+        res <= 33'd0;
+        c   <= 1'b0; 
     end
     
     // ====================================================================
@@ -57,51 +57,62 @@ module op_add(
     // ====================================================================
     // ====================================================================
     
+  
+    always @(negedge (clk & en_inst) or posedge rst ) begin
+        if (rst) begin
+            
+            res <= 33'd0;
+            c   <= 1'b0;
+        end else begin
+     
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- ADCS imm and ADD imm ---- */
-    
-    always @( posedge en_inst & (adc_imm | add_imm))  begin
-        res = adc_imm ? {1'b0,Rn} + {21'h0, imm_operand} + {32'h0, carry_in}
-                : {1'b0,Rn} + {21'h0, imm_operand}; 
-        c = res[32];
-    end 
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- ADCS reg and ADD reg ---- */
-           
-    always @( posedge en_inst & (adc_reg | add_reg) ) begin
-        res = adc_reg ? {1'b0, Rn} + {1'b0, Rm} + {32'h0, carry_in}
-                : {1'b0,Rn} + {1'b0, Rm}; 
-        c = res[32];
-
-        if(rrext) 
-        begin
-            c = res[0];
-            res = res >> 1;
-        end
+            /* ---- ADCS imm and ADD imm ---- */
         
-        if(srval) 
-        begin
-            if(!stype[1] & !stype[0]) // LSL
-            begin
-                res <= res << imm_shift;
+            if (adc_imm | add_imm) begin
+                res <= adc_imm ? {1'b0,Rn} + {21'h0, imm_operand} + {32'h0, carry_in}
+                    : {1'b0,Rn} + {21'h0, imm_operand}; 
+            c = res[32];
+            end 
+            
+            else if (adc_reg | add_reg) begin
+         // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
+                /* ---- ADCS imm and ADD reg ---- */
+    
+            
+                res = adc_reg ? {1'b0, Rn} + {1'b0, Rm} + {32'h0, carry_in}
+                        : {1'b0,Rn} + {1'b0, Rm}; 
                 c = res[32];
-            end
-            else if(!stype[1] & stype[0]) // LSR
-            begin
-                if(imm_shift == 5'h0)
-                    c = 1'b0;
-                else
-                    c = res[imm_shift - 1];
-                res = (res >> imm_shift);
-            end
-            else if(!stype[1] & stype[0]) // ASR
-            begin
-                if(imm_shift == 5'h0)
-                    c = 1'b0;
-                else
-                    c = res[imm_shift - 1];
-                res = ({res[32], res[31:0] >> imm_shift});
+        
+                if(rrext) 
+                begin
+                    c = res[0];
+                    res <= res >> 1;
+                end
+                
+                if(srval) 
+                begin
+                    if(!stype[1] & !stype[0]) // LSL
+                    begin
+                        res <= res << imm_shift;
+                        c = res[32];
+                    end
+                    else if(!stype[1] & stype[0]) // LSR
+                    begin
+                        if(imm_shift == 5'h0)
+                            c = 1'b0;
+                        else
+                            c = res[imm_shift - 1];
+                        res <= (res >> imm_shift);
+                    end
+                    else if(!stype[1] & stype[0]) // ASR
+                    begin
+                        if(imm_shift == 5'h0)
+                            c = 1'b0;
+                        else
+                            c = res[imm_shift - 1];
+                        res <= ({res[32], res[31:0] >> imm_shift});
+                    end
+                end
             end
         end
     end    
@@ -115,8 +126,8 @@ module op_add(
     assign Rd  = res[31:0];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (en_inst & S)?           c             : carry_in;
-    assign zero_out   = (en_inst & S)? (res[31:0] == 32'h0000) :  zero_in;
-    assign neg_out    = (en_inst & S)? (res[31]   == 1'b1    ) :   neg_in;
+    assign carry_out  = (S)?           c             : carry_in;
+    assign zero_out   = (S)? (res[31:0] == 32'h0000) :  zero_in;
+    assign neg_out    = (S)? (res[31]   == 1'b1    ) :   neg_in;
     
 endmodule

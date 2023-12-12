@@ -20,90 +20,69 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module cortex_m0(
-    input wire clk,
-    input wire rst
+module stm32F072(
+    input wire clock,
+    input wire rst,
+    output wire [3:0] out_leds
     );
 
-       
-// ----------------------------------------------------------
- /* <<<<<<<<<<<<<<<<< Initializations >>>>>>>>>>>>>>>>>> */
- 
-    initial begin
-    
-    end
-  
-  
- // ----------------------------------------------------------
- // ----------------------------------------------------------
- /* <<<<<<<<<<<<<<<<<<<< CONTROL UNIT >>>>>>>>>>>>>>>>>>>>> */
-    
-    ControlUnit cu(
-            clk, rst,
-            update_flags,
-            write_rd,
-            ig_ex,
-            br_en,
-            cu_wr_mem,
-            branch,
-            cu_decode,
-            cu_execute,
-            ld_sp,
-            ld_lr,
-            ld_pc,
-            ld_rd,
-            ld_apsr,
-            ld_ipsr,
-            ild_primask
-            );  
- // ----------------------------------------------------------
- // ----------------------------------------------------------
- /* <<<<<<<<<<<<<<<<<<<<<< DATAPATH >>>>>>>>>>>>>>>>>>>>>>> */
-    
-    Datapath dp(
-            clk, rst, 
-            cu_wr_mem,
-            branch,
-            cu_decode,
-            cu_execute,
-            ld_sp,
-            ld_lr,
-            ld_pc,
-            ld_rd,
-            ld_apsr,
-            ld_ipsr,
-            ild_primask,
-            update_flags,
-            write_rd,
-            ig_ex,
-            br_en
-            );
-    
- // ----------------------------------------------------------
- // ----------------------------------------------------------
- /* <<<<<<<<<<<<<<<<< SIMULATION SIGNALS >>>>>>>>>>>>>>>>>> */
 
-// ===================================================================
-// Write Test
-/*
-    always @(posedge clk or posedge rst) begin
+wire flash_busy, ld_flash, ld_mem, men_wr;
+wire busy_flA,busy_flB,busy_sram;
+
+wire [31:0] dout_flash_code;
+wire [31:0] din_mem;
+wire [31:0] dout_mem;
+
+wire [ 9:0] flash_addr_PC;
+wire [31:0] addr_mem;
+
+
+ // ----------------------------------------------------------
+ // ----------------------------------------------------------
+ /* <<<<<<<<<<<<<<<<<<< Core Cortex-M0 >>>>>>>>>>>>>>>>>>>> */
+
+    core corterx_m0(
+        clock,
+        rst,
+        busy_flA,
+        busy_flB,
+        busy_sram,
+        dout_flash_code,
+        dout_mem,
         
-        if (rst)begin
-             count <= 8'd0;
-        end 
-        else begin
-            if (count == 8'd5) begin
-                count <= 8'd0;
-                wr_en <= 1'b1;
-             end
-            else begin
-                wr_en <= 1'b0;
-                count <= count + 1'b1;
-            end
-               
-        end
-    end 
-*/
+        din_mem,
+        ld_flash,
+        ld_mem,
+        mem_wr,
+        flash_addr_PC,
+        addr_mem,
+        
+        out_leds
+    );       
 
 
+ // ----------------------------------------------------------
+ // ----------------------------------------------------------
+ /* <<<<<<<<<<<<<<<<<<<<<<<< Memory >>>>>>>>>>>>>>>>>>>>>>> */
+    Mem Memory(
+        clock, rst,
+    
+        ld_flash,
+        ld_mem,
+        mem_wr,
+        
+        flash_addr_PC,
+        addr_mem[10:0],
+        din_mem,
+        
+        busy_flA,
+        busy_flB,
+        busy_sram,
+        
+        dout_flash_code,
+        dout_mem
+    );
+    
+    
 endmodule

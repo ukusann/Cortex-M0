@@ -1,16 +1,3 @@
-// ****Memory***
-`define MEM_ADDR_SIZE  8'h7
-
-`define MEM_ROM_SIZE        32'h0001ffff
-`define MEM_SRAM_SIZE       32'h0000ffff
-`define MEM_PERIPHERAL_SIZE 32'h0000ffff
-
-`define ADDR_ROM        32'h00000000
-`define ADDR_SRAM       32'h00020000
-`define ADDR_PERIPHERAL 32'h00030000
-
-`define MEM_SIZE `MEM_ROM_SIZE + `MEM_SRAM_SIZE + `MEM_PERIPHERAL_SIZE
-//`define MEM_SIZE 8'hff
 
 // ****Core Rsgisters***
 `define SP_I 4'hd   // Stack Pointer
@@ -23,6 +10,12 @@
 `define C_I 5'd29   // Carry
 `define V_I 5'd28   // Overflow
  
+`define P_I 3'd4
+`define U_I 3'd3
+`define B_I 3'd2
+`define W_I 3'd1
+`define L_I 3'd0
+
 `define EXCEP_NUM  3'd5 
 
 // ****Instruction Register***
@@ -35,14 +28,14 @@
 `define ORR       5'h05
 `define EOR       5'h06
 `define BIC       5'h07
-`define MOV_LAS   5'h08
+`define MOV   5'h08
+`define MOV_LAS   5'h18
 `define CPSI      5'h09
 `define WFI       5'h0a
 `define ERET      5'h0b
 `define BX        5'h0c
 `define B         5'h0d
-`define LD        5'h0e
-`define ST        5'h0f
+`define LD_ST     5'h0e
 `define NO_INST   5'h1f
 
 // OPCODES:    
@@ -55,7 +48,8 @@
 `define OP_EORS  4'b0001    // Logical XOR
 
 `define OP_BIC       4'b1110 // Performs an Logical AND with the logical negation of the corresponding bits 
-`define OP_MOV_LAS   4'b1101 // Mov and Logical and Arithemetics Shifts   
+`define OP_MOV       4'b1101 // Mov instruction  
+`define OP_MOV_LAS   4'b1010 // Mov and Logical and Arithemetics Shifts   
 `define OP_MOVW_CPSI 4'b1000 // Mov word (16 bits) and CPSIE and CPSID
 `define OP_BX        4'b1001 // Branch and Exchange
 `define OP_ERET      4'b1011 // Exceptions Return

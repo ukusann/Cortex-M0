@@ -2,7 +2,7 @@
 
 `include "Defines.v"
 
-module op_and(
+module op_bic(
     
     input wire clk,
     input wire rst,
@@ -35,8 +35,8 @@ module op_and(
     reg c; 
     
     initial begin
-        res <= 33'd0;
-        c   <= 1'b0;
+        res <= 32'd0;
+        c <= 1'b0;
     end
     
     // ====================================================================
@@ -47,37 +47,39 @@ module op_and(
     // ====================================================================
     // ====================================================================
     
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- AND imm ---- */
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+
+`include "Defines.v"
+
+   
+                /* ---- BIC  ---- */
            
     always @( negedge (clk & en_inst) or posedge rst  ) begin
     
         if (rst) begin
-            res <= 33'd0;
-            c   <=  1'b0;
-        end
-        else begin
+            res <= 32'd0;
+            c <= 1'b0;
+        end else begin
+        
+    
             if (IMM) begin
-                res = {1'b0,Rn} & {21'h0, imm_operand};
+                res = Rn & {20'h0, ~imm_operand};
             end
             else if (!IMM) begin
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- AND reg ---- */
-               
-                res =  {1'b0, Rn} & {1'b0, Rm};
+                res =  Rn & ~Rm;
         
                 if(rrext) 
                 begin
                     c = res[0];
-                    res <= res >> 1;
+                    res = res >> 1;
                 end
                 
                 if(srval) 
                 begin
                     if(!stype[1] & !stype[0]) // LSL
                     begin
+                        c = res[31];
                         res <= res << imm_shift;
-                        c = res[32];
                     end
                     else if(!stype[1] & stype[0]) // LSR
                     begin
@@ -85,7 +87,7 @@ module op_and(
                             c = 1'b0;
                         else
                             c = res[imm_shift - 1];
-                        res <= (res >> imm_shift);
+                        res = (res >> imm_shift);
                     end
                     else if(!stype[1] & stype[0]) // ASR
                     begin
@@ -93,11 +95,11 @@ module op_and(
                             c = 1'b0;
                         else
                             c = res[imm_shift - 1];
-                        res = ({res[32], res[31:0] >> imm_shift});
+                        res = ({res[31:0] >> imm_shift});
                     end
                 end
             end
-        end     
+        end
     end    
     
 
@@ -106,7 +108,7 @@ module op_and(
     // ====================================================================
                     /* ---- OUTPUT ---- */
     
-    assign Rd  = res[31:0];
+    assign Rd  = res;
     
                    /* ---- Update flags if S == 1 ---- */
     assign carry_out  = (S)?           c          : carry_in;

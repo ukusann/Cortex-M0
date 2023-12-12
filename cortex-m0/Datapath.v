@@ -29,17 +29,18 @@ module Datapath(
     
     input wire wr_en,
     input wire branch,
-    input wire cu_decode,
     input wire cu_execute,
+    input wire led_en,
     
     // Control Signals
     input wire ld_sp,
     input wire ld_lr,
     input wire ld_pc,
-   
+    input wire ld_ir,   
     
     // Register Signal
     input wire ld_rd,
+    input wire ld_rn,
     
     // Program Status Registers Signals
     input wire ld_apsr,
@@ -48,12 +49,27 @@ module Datapath(
     // Priority Mask Register Signal
     input wire ld_primask,
     
+    // Memory 
+    input wire [31:0]dout_flash,
+    input wire [31:0] dout_mem, // Output data Memory (Read/Load) 
+    
+    output wire [31:0] din_mem,  // Input data Memory (Write/Store)
+    
+    // Memory adrresses:
+    output wire [9:0] flash_addr_PC,
+    output wire [31:0] addr_mem, 
+    
     // Control Signals
     output wire update_flags, // S == 1
     output wire write_rd,     // needs to write in Rd
+    output wire write_rn,     // needs to wirte in Rn
+    output wire mem_en,       // Enable Memory
+    output wire mem_wr,       // Memory Write/Read Mode 
     output wire ig_ex,        // Ignore execute state 
-    output wire br_en         // a branch needs to be executed
+    output wire br_en,        // a branch needs to be executed
+    output wire br_L,          // needs to write in LR (Link Register)
     
+    output wire [3:0] out_leds
     );
   
 // ____________________________________________________________________________________________________
@@ -61,10 +77,6 @@ module Datapath(
 // ====================================================================================================
 // ====================================================================================================
                                 /* Memory and Core Registers*/
-  
-    reg [31:0] base_addr;
-    reg [31:0] w_data;
-    wire [31:0] r_data;
 
     wire [31:0] w_SP;     // Write Stack Pointer 
     wire [31:0] w_LR;     // Write Link Register 
@@ -72,6 +84,7 @@ module Datapath(
     
      
     wire [31:0] w_Rd;     // Write destanation Reg 
+    wire [31:0] w_Rn;     // Write Base offset Reg 
     wire [ 3:0] addr_Rn;  // Rn address
     wire [ 3:0] addr_Rm;  // Rm address
     wire [ 3:0] addr_Rd;  // Rd address
@@ -96,29 +109,11 @@ module Datapath(
     wire [ 5:0] IPSR;   // Exception Numbers
     
     wire PMask;           // Enable Priority
-  
-    initial begin
-        base_addr <= 32'h00000004;
-        w_data    <= 32'h00000000;
-        
-    end
-      
-    
+
+                
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-    
-    Memory mem(
-            clk,rst, 
-            wr_en,   
-            PC,
-            base_addr, 
-            w_data, 
-            IR,
-            r_data
-            );
-              
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+                                /* Core Registers */ 
                
     coreRegisters CoreReg(
     // System Signals
@@ -133,6 +128,7 @@ module Datapath(
     
     // Register Signal
             ld_rd,
+            ld_rn,
             
     // Program Status Registers Signals
             ld_apsr,
@@ -148,6 +144,7 @@ module Datapath(
     
     // General Purpose Registers
             w_Rd,     // Write destanation Reg 
+            w_Rn,     // Write base offset Reg 
             addr_Rn,  // Rn address
             addr_Rm,  // Rm address
             addr_Rd,  // Rd address
@@ -179,16 +176,13 @@ module Datapath(
             PMask    // Read Enable Priority
     );
     
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
-    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
- 
- 
+    
 // ____________________________________________________________________________________________________
 // ====================================================================================================
 // ====================================================================================================
 // ====================================================================================================
-                          /* Instruction Register and Program Counter*/
-  
+                          /* Instruction Register and Instruction Decoder */
+    
     wire [4:0] inst;         // Instruction to Execute
     wire    I;         // Immediate Operand or Immediate Offset Enable     
     wire    S;         // Set condition codes
@@ -197,7 +191,6 @@ module Datapath(
     wire [ 4:0]  imm_shift; // Immediate offset Shift
     wire [11:0]   imm_OP_2; // Operand 2 Immediate
   
-    wire br_L;             // Link bit 
     wire [23:0] br_offset; // Branch offset  
 
     
@@ -216,13 +209,22 @@ module Datapath(
                             //      W: Write-back bit
                             //      L: Load/Store bit
    
+ 
+    // ________________________________________________________________________
+                       /* ---- Instruction Register ---- */
+ InstReg InstReg(
+    rst,
+    ld_ir,
+    dout_flash,
     
-
+    IR
+ );
+ 
     // ________________________________________________________________________
                     /* ---- Instruction Register Decode ---- */
    
  
- InstructionReg ins_reg(
+ InstDecoder InstDecoder(
    // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- INPUTS ---- */
     
@@ -239,8 +241,8 @@ module Datapath(
                        /* ---- OUTPUTS ---- */
      inst, // Defines the Instruction to execute 
    
-        I,         // Immediate Operand or Immediate Offset     
-        S,         // Set condition codes    
+    I,         // Immediate Operand or Immediate Offset     
+    update_flags,         // Set condition codes    
     stype,         // Shift Type
    
     // Registers:
@@ -272,7 +274,8 @@ module Datapath(
     single_trans_f, // Data Transfer flags ( P, U, B, W, L):
     
     write_rd,
-    update_flags,
+    write_rn,
+    mem_en,
     br_en,
     
     ig_ex
@@ -299,7 +302,7 @@ module Datapath(
     Rn, // Rn Register
     Rm, // Rm Register
     Rs, // Rs Shift Register
-    Rd, // Rd Register
+    Rd, // Rd Result Register
 
     imm_shift, // Immediate offset Shift
     imm_OP_2,  // Operand 2 Immediate
@@ -311,51 +314,49 @@ module Datapath(
     PC,  
 
     I, // Enable Immediate
-    S, // Set condition codes    
+    update_flags, // Set condition codes    
     stype, // Shift Type
     
+    single_trans_f, // Data Transfer flags ( P, U, B, W, L
     n, z, c, v,
+    dout_mem, // Output data Memory (Read/Load)
     
     // Outputs
     w_n,w_z,w_c, w_v,
     
     w_LR,
     w_PC,
-    w_Rd
+    w_Rd,
+    w_Rn,
+    din_mem,  // Input data Memory (Write/Store)
+    addr_mem  // Mamory Address
     );
     
- 
- //================================================================
- // Core Register Write Test
-    /*
-    assign w_SP = 32'h00000002; 
-    assign w_LR = 32'hff00ff03; 
-    assign w_PC = 32'h00000004;
     
-    assign w_Rd = 32'h06fffff2;     
-    assign addr_Rn = 4'h0;
-    assign addr_Rm = 4'h1;
-    assign addr_Rd = 4'h2;  
+     
+// ____________________________________________________________________________________________________
+// ====================================================================================================
+// ====================================================================================================
+// ====================================================================================================
+                                       /* ---- LEds controller ---- */    
+  LEDs leds(
+        
+        clk,rst,
+        led_en,
 
-    assign { w_n, w_z, w_c, w_v } = {1'b1, 1'b1, 1'b1, 1'b1};
-    assign w_IPSR = 6'h12;  
-    assign w_PMask = 1'b1; 
-    */
-           
- //================================================================
- // Write memory Test
-  /*             
-     always @(negedge wr_en or posedge rst) begin
-        
-        if (rst)begin
-            w_data <= 32'h00000004;        
-        end 
-        else if (!wr_en) begin
-            w_data <= w_data + 32'h00000005;
-        
-        end
-    end 
-    */
-    
- 
+        Rd, // Defines the Register to display in LEDs
+
+        out_leds
+        );
+
+
+    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+    // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
+                                /* Memory Controller */
+     
+        assign mem_wr = !single_trans_f[`L_I] & inst == `LD_ST;
+
+        assign flash_addr_PC = PC[10:0];
+  
+
 endmodule

@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 11/01/2023 09:01:57 AM
+// Create Date: 11/06/2023 05:39:57 PM
 // Design Name: 
-// Module Name: op_branch
+// Module Name: op_branch_reg
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,17 +20,18 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module op_branch(
-        input wire clk,
-        input wire rst,
-        input wire inst_brach,
-        input wire Link,
-        
-        input wire [31:0] offset,
-        input wire [31:0] in_PC,
-        
-        output wire [31:0] out_PC,
-        output wire [31:0] LR
+module op_branch_reg(
+    
+    input wire clk,
+    input wire rst,
+    input wire inst_brach_reg,
+    input wire Link,
+    
+    input wire [31:0] REG,
+    input wire [31:0] in_PC,
+    
+    output wire [31:0] out_PC,
+    output wire [31:0] LR
     );
     
     reg [31:0] pc;
@@ -41,28 +42,25 @@ module op_branch(
         lr = 32'd0;
     end
     
-    always @(negedge (clk & inst_brach) or posedge rst) begin
+    always @(posedge ( clk & inst_brach_reg) or posedge rst) begin
         
         if (rst) begin
             pc <= 32'd0;
             lr <= 32'd0;
         end else begin
-            if (offset[23]) begin
-                pc <=  in_PC - ( (offset[23:0] ^ 24'hFFFFFF) + 32'd1);
-            end
-            else begin
-                pc <=  in_PC + offset;
-            end
+        
+            pc <=  REG;
+            
             if (Link) begin
                 lr <= in_PC + 32'd1;
             end
             else begin
                 lr <= 32'd0;
             end
-        end     
+        end
     end
     
     assign out_PC = pc;
     assign LR = lr; 
- 
+
 endmodule

@@ -35,8 +35,8 @@ module op_or(
     reg c; 
     
     initial begin
-        res = 33'd0;
-        c = 1'b0;
+        res <= 33'd0;
+        c <= 1'b0;
     end
     
     // ====================================================================
@@ -47,47 +47,53 @@ module op_or(
     // ====================================================================
     // ====================================================================
     
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- ORAND imm ---- */
-    
-    always @( posedge en_inst & (IMM))  begin
-        res = {1'b0,Rn} | {21'h0, imm_operand};
-    end 
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
-                /* ---- OR reg ---- */
+                /* ---- OR  ---- */
            
-    always @( posedge en_inst & (!IMM) ) begin
-        res =  {1'b0, Rn} | {1'b0, Rm};
-
-        if(rrext) 
-        begin
-            c = res[0];
-            res = res >> 1;
-        end
+    always @( negedge (clk & en_inst) or posedge rst  ) begin
+    
+        if (rst) begin
+            res <= 33'd0;
+            c <= 1'b0;
+        end else begin
         
-        if(srval) 
-        begin
-            if(!stype[1] & !stype[0]) // LSL
-            begin
-                res <= res << imm_shift;
-                c = res[32];
+    
+            if (IMM) begin
+                res = {1'b0,Rn} | {21'h0, imm_operand};
             end
-            else if(!stype[1] & stype[0]) // LSR
-            begin
-                if(imm_shift == 5'h0)
-                    c = 1'b0;
-                else
-                    c = res[imm_shift - 1];
-                res = (res >> imm_shift);
-            end
-            else if(!stype[1] & stype[0]) // ASR
-            begin
-                if(imm_shift == 5'h0)
-                    c = 1'b0;
-                else
-                    c = res[imm_shift - 1];
-                res = ({res[32], res[31:0] >> imm_shift});
+            else if (!IMM) begin
+                res =  {1'b0, Rn} | {1'b0, Rm};
+        
+                if(rrext) 
+                begin
+                    c = res[0];
+                    res = res >> 1;
+                end
+                
+                if(srval) 
+                begin
+                    if(!stype[1] & !stype[0]) // LSL
+                    begin
+                        res <= res << imm_shift;
+                        c = res[32];
+                    end
+                    else if(!stype[1] & stype[0]) // LSR
+                    begin
+                        if(imm_shift == 5'h0)
+                            c = 1'b0;
+                        else
+                            c = res[imm_shift - 1];
+                        res = (res >> imm_shift);
+                    end
+                    else if(!stype[1] & stype[0]) // ASR
+                    begin
+                        if(imm_shift == 5'h0)
+                            c = 1'b0;
+                        else
+                            c = res[imm_shift - 1];
+                        res = ({res[32], res[31:0] >> imm_shift});
+                    end
+                end
             end
         end
     end    
@@ -101,8 +107,8 @@ module op_or(
     assign Rd  = res[31:0];
     
                    /* ---- Update flags if S == 1 ---- */
-    assign carry_out  = (en_inst & S)?           c          : carry_in;
-    assign zero_out   = (en_inst & S)? (res[31:0] == 32'h0) :  zero_in;
-    assign neg_out    = (en_inst & S)? (res[31]   == 1'b1 ) :   neg_in;
+    assign carry_out  = (S)?           c          : carry_in;
+    assign zero_out   = (S)? (res[31:0] == 32'h0) :  zero_in;
+    assign neg_out    = (S)? (res[31]   == 1'b1 ) :   neg_in;
     
 endmodule

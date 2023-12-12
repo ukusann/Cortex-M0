@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 10/14/2023 11:31:06 AM
+// Create Date: 11/04/2023 05:57:14 PM
 // Design Name: 
-// Module Name: InstructionReg
+// Module Name: InstDecoder
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -18,16 +18,15 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+    
 `include "Defines.v"
-
-
 // _________________________________________________________________________________________________________
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // =========================================================================================================
                         /* -------- Module instruction Register Begin: -------- */
 
 
-module InstructionReg(
+module InstDecoder(
    // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- INPUTS ---- */
     
@@ -85,7 +84,8 @@ module InstructionReg(
                             //      L: Load/Store bit
    
    output wire write_rd,    // write Result Register
-   output wire update_flags,// update condition codes
+   output wire write_rn,    // write Base Offset Reg
+   output wire mem_en,
    output wire br_en,       // Branch Instruction
                        
    output wire ig_ex        // Ignore Instruction
@@ -152,17 +152,12 @@ module InstructionReg(
     // Operand 2 = Register:
     
     assign addr_Rs  = (I_s4 & data_proc) ? IR[11: 8] : 4'h0;
-    assign addr_Rm  = ((!IMM || opcode == `OP_MOV_LAS || 
-                                opcode == `OP_ADCS || opcode == `OP_ADDS ||
-                                opcode == `OP_SBCS || opcode == `OP_SUBS || 
-                                opcode == `OP_ANDS || opcode == `OP_ORRS ||
-                                opcode == `OP_EORS)  
-                                && (single_transf | data_proc) ) ? IR[3:0] : 4'h0;
+    assign addr_Rm  = ( (!IMM || opcode == `OP_MOV_LAS) && (single_transf | data_proc) ) ? IR[3:0] : 4'h0;
     assign stype    = IR[ 6: 5];
     
     // Operand 2 = Immediate:
     assign imm12     = (IMM) ? IR[11:0] : 12'b000000000000;
-    assign imm5      = IR[11: 7];
+    assign imm5      = (IMM) ? IR[11: 7] : 5'h00;
   
     // General Data and Flags Uncondition Instructions:
     assign imod     = (uncond) ? IR[19:18] : 8'h0;
@@ -186,9 +181,10 @@ module InstructionReg(
     // ==============================================================
              /* ----- Definition of the Instruction -----*/
     
-    
+
     assign instruction = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS :
-                        (               branch              ) ? `B  :
+                        (            single_transf          ) ? `LD_ST :
+                        (               branch              ) ? `B :
                         (data_proc & (opcode == `OP_BX)     ) ? `BX :
                         (data_proc & (opcode == `OP_ERET)   ) ? `OP_ERET :
                         (data_proc & (opcode == `OP_ADDS)   ) ? `ADD : 
@@ -198,6 +194,8 @@ module InstructionReg(
                         (data_proc & (opcode == `OP_ANDS)   ) ? `AND :
                         (data_proc & (opcode == `OP_ORRS)   ) ? `ORR :
                         (data_proc & (opcode == `OP_EORS)   ) ? `EOR :
+                        (data_proc & (opcode == `OP_BIC)    ) ? `BIC :
+                        (data_proc & (opcode == `OP_MOV)    ) ? `MOV :
                         `NO_INST;
     
     
@@ -220,10 +218,10 @@ module InstructionReg(
                    1'b1; // Skip the execution State
                         
 
-    assign write_rd = !ig_ex & instruction != `ERET & instruction != `WFI & (single_transf | data_proc);
+    assign write_rd = !ig_ex & instruction != `BX & instruction != `ERET & instruction != `WFI & 
+                       ((single_transf & singlet_flags[`L_I] ) | data_proc);
     assign br_en    = !ig_ex & (instruction == `B || instruction == `BX || instruction == `ERET );    
-    assign update_flags = S;
+    assign write_rn = !ig_ex & single_transf & singlet_flags[`W_I];
+    assign mem_en   = !ig_ex & single_transf;
+    
 endmodule
-
-
-
