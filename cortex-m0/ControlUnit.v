@@ -31,6 +31,7 @@ module ControlUnit(
     output wire cu_branch,
     
     output wire cu_execute,
+    output wire led_en,
     output wire ld_sp,
     output wire ld_lr,
     output wire ld_pc,
@@ -72,7 +73,7 @@ module ControlUnit(
 // ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  --- 
 //  OUTPUT SIGNALS
    
-    assign ld_sp      =   st[1] & !st[0] & 1'b0;                // Stack Register
+    assign ld_sp      =   st[1] & !st[0] & 1'b0;         // Stack Register
     assign ld_lr      =   st[1] & !st[0] & br_L;         // Link Register
     assign ld_pc      =   st[1] & !st[0];                // Program Counter Register
     assign ld_ir      =  !st[1] & !st[0] & clk;          // Instruction Register
@@ -88,7 +89,7 @@ module ControlUnit(
     assign ld_primask =  1'b0;                                  // ISR Priority Register
     
     assign cu_execute =  !st[1] &  st[0];                       // Execute State
-    
+    assign led_en     = 1'b1;
 // ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  --- 
 // MEMORY SIGNALS
  

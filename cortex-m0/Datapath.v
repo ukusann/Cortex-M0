@@ -30,6 +30,7 @@ module Datapath(
     input wire wr_en,
     input wire branch,
     input wire cu_execute,
+    input wire led_en,
     
     // Control Signals
     input wire ld_sp,
@@ -68,7 +69,7 @@ module Datapath(
     output wire br_en,        // a branch needs to be executed
     output wire br_L,          // needs to write in LR (Link Register)
     
-    output wire [3:0] r3
+    output wire [3:0] out_leds
     );
   
 // ____________________________________________________________________________________________________
@@ -172,9 +173,7 @@ module Datapath(
             IPSR,          // Read Exception Numbers
     
     // Priority Mask Register
-            PMask,    // Read Enable Priority
-            
-            r3
+            PMask    // Read Enable Priority
     );
     
     
@@ -334,13 +333,30 @@ module Datapath(
     );
     
     
+     
+// ____________________________________________________________________________________________________
+// ====================================================================================================
+// ====================================================================================================
+// ====================================================================================================
+                                       /* ---- LEds controller ---- */    
+  LEDs leds(
+        
+        clk,rst,
+        led_en,
+
+        Rd, // Defines the Register to display in LEDs
+
+        out_leds
+        );
+
+
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
     // - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - -  - - - - 
                                 /* Memory Controller */
      
-     assign mem_wr = !single_trans_f[`L_I] & inst == `LD_ST;
-     
-     assign flash_addr_PC = PC[10:0];
+        assign mem_wr = !single_trans_f[`L_I] & inst == `LD_ST;
+
+        assign flash_addr_PC = PC[10:0];
   
 
 endmodule

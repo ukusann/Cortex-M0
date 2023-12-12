@@ -37,7 +37,7 @@ module core(
     output wire [ 9:0] flash_addr_PC,
     output wire [31:0] addr_mem, 
     
-    output wire [3:0] r3
+    output wire [3:0] out_leds
     
     );
     
@@ -61,6 +61,7 @@ module core(
             ld_flash,
             branch,
             cu_execute,
+            led_en,
             ld_sp,
             ld_lr,
             ld_pc,
@@ -81,6 +82,7 @@ module core(
             cu_wr_mem,
             branch,
             cu_execute,
+            led_en,
             ld_sp,
             ld_lr,
             ld_pc,
@@ -103,7 +105,7 @@ module core(
             ig_ex,
             br_en,
             br_L,
-            r3
+            out_leds
             );
     
 endmodule

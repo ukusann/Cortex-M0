@@ -23,7 +23,7 @@
 module stm32F072(
     input wire clock,
     input wire rst,
-    output wire [3:0] r3
+    output wire [3:0] out_leds
     );
 
 
@@ -58,7 +58,7 @@ wire [31:0] addr_mem;
         flash_addr_PC,
         addr_mem,
         
-        r3
+        out_leds
     );       
 
 

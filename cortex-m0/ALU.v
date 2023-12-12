@@ -79,6 +79,8 @@ module ALU(
     wire inst_and_en;       // enable the and operation    
     wire inst_or_en;        // enable the  or operation
     wire inst_xor_en;       // enable the xor operation
+    wire inst_bic_en;       // enable the bic operation
+    wire inst_mov_en;       // enable the mov operation
     
     wire ld_st_en;          // enable load/store operation
     wire no_inst;           // No Instruction
@@ -248,6 +250,60 @@ module ALU(
 
     // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
     // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                            /* ---- BIC ---- */
+    
+    wire [31:0] Rd_bic;
+    wire c_bic;
+    wire z_bic;
+    wire n_bic;
+    op_bic BIC(
+        // Inputs:
+            clk,rst,
+    
+            (cu_execute & inst_bic_en), // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_bic,              // Destination Reg
+            c_bic, z_bic, n_bic  // Flags
+    );
+
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
+                            /* ---- MOV ---- */
+    
+    wire [31:0] Rd_mov;
+    wire c_mov;
+    wire z_mov;
+    wire n_mov;
+    op_mov MOV(
+        // Inputs:
+            clk,rst,
+    
+            (cu_execute & inst_mov_en), // Condition to Execute Operation
+            IMM,                 // Immediate flag
+            S,                   // Set flags
+            Rn,                  // Register Rn
+            imm_operand,         // Immediate Operand
+            imm_shift,           // Immediate Shift
+            stype,               // Shift Type 
+            Rm,                  // Register Rm
+            in_c, in_z ,in_n,    // Flags
+
+        // Output
+            Rd_mov,              // Destination Reg
+            c_mov, z_mov, n_mov  // Flags
+    );
+
+    // ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____  ____ 
+    // ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ----  ---- 
                             /* ---- LD/ST ---- */
     
     wire [31:0] Rn_ld_st;
@@ -318,6 +374,8 @@ module ALU(
     assign inst_and_en = (instruction == `AND);
     assign inst_or_en  = (instruction == `ORR);
     assign inst_xor_en = (instruction == `EOR);
+    assign inst_bic_en = (instruction == `BIC);
+    assign inst_mov_en = (instruction == `MOV);
     
     // Load and Store
     assign ld_st_en = (instruction == `LD_ST);
@@ -338,7 +396,9 @@ module ALU(
                                   inst_sub_en       ? Rd_sub     :
                                   inst_and_en       ? Rd_and     :
                                   inst_or_en        ? Rd_or      :
-                                  inst_xor_en       ? Rd_xor     : 
+                                  inst_xor_en       ? Rd_xor     :
+                                  inst_bic_en       ? Rd_bic     :
+                                  inst_mov_en       ? Rd_mov     : 
                                   32'h0;
     
     // Base Offset Register:
@@ -357,6 +417,8 @@ module ALU(
                     inst_and_en    ? c_and     :
                     inst_or_en     ? c_or      :
                     inst_xor_en    ? c_xor     :
+                    inst_bic_en    ? c_bic     :
+                    inst_mov_en    ? c_mov     :
                     in_c;
                   
     // Zero Flag                
@@ -366,6 +428,8 @@ module ALU(
                     inst_and_en    ? z_and     :
                     inst_or_en     ? z_or      :
                     inst_xor_en    ? z_xor     :
+                    inst_bic_en    ? z_bic     :
+                    inst_mov_en    ? z_mov     :
                     in_z;
 
     // Negative Flag
@@ -375,9 +439,11 @@ module ALU(
                     inst_and_en    ? n_and     :
                     inst_or_en     ? n_or      :
                     inst_xor_en    ? n_xor     : 
+                    inst_bic_en    ? n_bic     :
+                    inst_mov_en    ? n_mov     :
                     in_n;
 
-    // Negative Flag
+    // Overflow Flag
     assign out_v =  in_v;
 
    // Write Program Counter

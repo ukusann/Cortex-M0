@@ -28,7 +28,8 @@
 `define ORR       5'h05
 `define EOR       5'h06
 `define BIC       5'h07
-`define MOV_LAS   5'h08
+`define MOV   5'h08
+`define MOV_LAS   5'h18
 `define CPSI      5'h09
 `define WFI       5'h0a
 `define ERET      5'h0b
@@ -47,7 +48,8 @@
 `define OP_EORS  4'b0001    // Logical XOR
 
 `define OP_BIC       4'b1110 // Performs an Logical AND with the logical negation of the corresponding bits 
-`define OP_MOV_LAS   4'b1101 // Mov and Logical and Arithemetics Shifts   
+`define OP_MOV       4'b1101 // Mov instruction  
+`define OP_MOV_LAS   4'b1010 // Mov and Logical and Arithemetics Shifts   
 `define OP_MOVW_CPSI 4'b1000 // Mov word (16 bits) and CPSIE and CPSID
 `define OP_BX        4'b1001 // Branch and Exchange
 `define OP_ERET      4'b1011 // Exceptions Return

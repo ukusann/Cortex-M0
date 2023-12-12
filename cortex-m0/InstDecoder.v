@@ -23,7 +23,7 @@
 // _________________________________________________________________________________________________________
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // =========================================================================================================
-                        /* -------- Module Instrution Register Begin: -------- */
+                        /* -------- Module instruction Register Begin: -------- */
 
 
 module InstDecoder(
@@ -45,7 +45,7 @@ module InstDecoder(
     
     // - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -   - - -  
                        /* ---- OUTPUTS ---- */
-    output wire [4:0] instrution, // Defines the Instruction to execute
+    output wire [4:0] instruction, // Defines the Instruction to execute
     output wire IMM,          // Enable Immediate
     output wire    S,         // Set condition codes    
     output wire [ 1:0] stype, // Shift Type
@@ -182,11 +182,11 @@ module InstDecoder(
              /* ----- Definition of the Instruction -----*/
     
 
-    assign instrution = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS :
+    assign instruction = (data_proc & (opcode == `OP_MOV_LAS)) ? `MOV_LAS :
                         (            single_transf          ) ? `LD_ST :
                         (               branch              ) ? `B :
-                        (   data_proc & (opcode == `OP_BX)  ) ? `BX :
-                        (  data_proc & (opcode == `OP_ERET) ) ? `OP_ERET :
+                        (data_proc & (opcode == `OP_BX)     ) ? `BX :
+                        (data_proc & (opcode == `OP_ERET)   ) ? `OP_ERET :
                         (data_proc & (opcode == `OP_ADDS)   ) ? `ADD : 
                         (data_proc & (opcode == `OP_ADCS)   ) ? `ADC :
                         (data_proc & (opcode == `OP_SBCS)   ) ? `SBC :
@@ -194,6 +194,8 @@ module InstDecoder(
                         (data_proc & (opcode == `OP_ANDS)   ) ? `AND :
                         (data_proc & (opcode == `OP_ORRS)   ) ? `ORR :
                         (data_proc & (opcode == `OP_EORS)   ) ? `EOR :
+                        (data_proc & (opcode == `OP_BIC)    ) ? `BIC :
+                        (data_proc & (opcode == `OP_MOV)    ) ? `MOV :
                         `NO_INST;
     
     
@@ -202,7 +204,7 @@ module InstDecoder(
                     /* ---- Condition Compare ---- */
     
     
-    assign ig_ex = ( instrution == `NO_INST ) ? 1'b1 : // No Instruction Defined
+    assign ig_ex = ( instruction == `NO_INST ) ? 1'b1 : // No Instruction Defined
                    (    cond == `COND_UN    ) ? 1'b0 : // Unconditional Instruction
                    (    cond == `COND_AL    ) ? 1'b0 : // Always (ignor flags)
                    ( cond == `COND_EQ &&  z ) ? 1'b0 : // Equal
@@ -216,9 +218,9 @@ module InstDecoder(
                    1'b1; // Skip the execution State
                         
 
-    assign write_rd = !ig_ex & instrution != `BX & instrution != `ERET & instrution != `WFI & 
+    assign write_rd = !ig_ex & instruction != `BX & instruction != `ERET & instruction != `WFI & 
                        ((single_transf & singlet_flags[`L_I] ) | data_proc);
-    assign br_en    = !ig_ex & (instrution == `B || instrution == `BX || instrution == `ERET );    
+    assign br_en    = !ig_ex & (instruction == `B || instruction == `BX || instruction == `ERET );    
     assign write_rn = !ig_ex & single_transf & singlet_flags[`W_I];
     assign mem_en   = !ig_ex & single_transf;
     

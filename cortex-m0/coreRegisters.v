@@ -88,9 +88,7 @@ module coreRegisters(
     
     
     // Priority Mask Register
-    output wire r_PMask,        // Read Enable Priority
-    
-    output wire [3:0] r3
+    output wire r_PMask        // Read Enable Priority    
     );
 
     
@@ -119,6 +117,7 @@ module coreRegisters(
             PRIMASK <= 32'h00000000;
             
             // Test
+            //core_reg[1] = 32'h00000101;
             /*
             core_reg[0] = 32'h00000000;
             core_reg[1] = 32'h00000101;
@@ -245,10 +244,7 @@ module coreRegisters(
     assign R1 = core_reg[1];
     assign R2 = core_reg[2];
     assign R3 = core_reg[3];
-    assign R4 = core_reg[4];
-    
-    assign r3 = {1'b1, R3 [2:0]}; 
-    
+    assign R4 = core_reg[4];    
     // *********************************
 endmodule
 
