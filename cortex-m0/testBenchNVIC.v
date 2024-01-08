@@ -19,33 +19,27 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-`define SIM_TIME 8'd255
+`define SIM_TIME 8'd25
 
 module testBench();
     
     reg   clk, rst;
     
     reg [7:0]count;
- 
-    wire [31:0] ISER;     // ISER: Interrupt Set-Enable Register
-    wire [31:0] ICER;     // ICER: Interrupt Clear-Enable Register
-    wire [31:0] ISPR;    // ISPR: Interrupt Set-Pending Register
-    wire [31:0] ICPR;    // ICPR: Interrupt Clear-Pending Register
-    wire [32:0] IPR [7:0]; // IPR0-IPR7: Interrupt Priority Registers
+    wire nvic_en;
+    wire [7:0] ISER;     // ISER: Interrupt Set-Enable Register
+    wire [7:0] ICER;     // ICER: Interrupt Clear-Enable Register
+    wire [7:0] ISPR;    // ISPR: Interrupt Set-Pending Register
+    wire [7:0] ICPR;    // ICPR: Interrupt Clear-Pending Register
+    wire [31:0] IPR; // IPR0-IPR7: Interrupt Priority Registers
     wire [7:0] interrupt_active;  
     
-    assign ISER = 32'h80;
+    assign ISER = 32'h6;
     assign ICER = 32'h0;
-    assign ISPR = 32'h80;
-    assign ICPR = (count+1%4) ? 32'h80 : 32'h00;
-    assign IPR[0] = 32'h00; 
-    assign IPR[1] = 32'hc000;
-    assign IPR[2] = 32'h00;
-    assign IPR[3] = 32'h00;
-    assign IPR[4] = 32'h00;
-    assign IPR[5] = 32'h00;
-    assign IPR[6] = 32'h00;
-    assign IPR[7] = 32'h00;
+    assign ISPR = (count==3) ? 32'h0 : 32'h6;
+    assign ICPR = (count==3) ? 32'h2 : 32'h00;
+    assign IPR = 32'hc008; 
+    assign nvic_en = (count%2) ? 1'b1 : 1'b0;
 
     initial begin
         clk = 1'b0;
@@ -62,18 +56,12 @@ module testBench();
     NVIC NVIC(
         clk,
         rst,
+        nvic_en,
         ISER,
         ICER,
         ISPR,
         ICPR,
-        IPR[0],
-        IPR[1],
-        IPR[2],
-        IPR[3],
-        IPR[4],
-        IPR[5],
-        IPR[6],
-        IPR[7],
+        IPR,
         interrupt_active
         
     ); 
